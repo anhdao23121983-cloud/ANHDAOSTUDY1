@@ -1,29 +1,39 @@
-# Node.js
+# Dependencies
 node_modules/
-npm-debug.log
-yarn-error.log
+/.pnp
+.pnp.js
 
 # Environment variables
 .env
 .env.local
-.env.development
-.env.test
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDEs and Editor directories
-.idea/
-.vscode/
-*.swp
-*.swo
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
 .DS_Store
+Thumbs.db
+cmdkey_output.txt
 
-# Antigravity temporary files
-.agent/tasks/
-.agent/.shared/
+# Editor directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Python (in case backend is Python later)
+# Cache and temporary agent tasks
 __pycache__/
-*.py[cod]
-*$py.class
-.venv/
-env/
+*.pyc
+.agent/tasks/
+.agent/skills/*/scripts/__pycache__/
+

@@ -1,63 +1,635 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // Cấu hình chung cho các đường vẽ
-    const commonOptions = {
-        path: 'fluid',
-        startSocket: 'right',
-        endSocket: 'left',
+document.addEventListener('DOMContentLoaded', () => {
+    // Shared styling for the lines to match the purple theme
+    const lineOptions = {
+        color: '#8B5CF6',
         size: 2,
-        dropShadow: true,
-        startPlug: 'behind',
-        endPlug: 'arrow1',
-        endPlugSize: 1.5
+        path: 'fluid', // nice curves
+        startPlug: 'behind', // hide start behind node
+        endPlug: 'arrow3', // arrow style
+        endPlugSize: 1.2,
     };
 
-    // Định nghĩa màu cho từng line
-    const frontendToMiddleware = { ...commonOptions, color: '#8b5cf6' }; // Tím
-    const middlewareToBackend = { ...commonOptions, color: '#f59e0b' };  // Cam
-    const backendToDatabase = { ...commonOptions, color: '#3b82f6' };    // Xanh dương
+    // Store lines in an array to manage resizing
+    const lines = [];
 
-    let lines = [];
-
-    // Hàm vẽ sơ đồ
-    function drawLines() {
-        // Xóa lines cũ nếu có (dành cho responsive)
-        if (lines.length > 0) {
-            lines.forEach(line => line.remove());
-            lines = [];
+    // Node 1 to Node 2
+    lines.push(new LeaderLine(
+        document.getElementById('node-1'),
+        document.getElementById('node-2'),
+        {
+            ...lineOptions,
+            path: 'straight',
+            startSocket: 'right',
+            endSocket: 'left'
         }
+    ));
 
-        // 1. Nối Frontend -> API Gateway
-        lines.push(new LeaderLine(
-            document.getElementById('node-frontend'),
-            document.getElementById('node-gateway'),
-            frontendToMiddleware
-        ));
+    // Node 2 to Node 3 (curved, bottom to top)
+    lines.push(new LeaderLine(
+        document.getElementById('node-2'),
+        document.getElementById('node-3'),
+        {
+            ...lineOptions,
+            startSocket: 'bottom',
+            endSocket: 'top',
+            startSocketGravity: [0, 60],
+            endSocketGravity: [0, -60]
+        }
+    ));
 
-        // 2. Nối API Gateway -> 4 Backend modules
-        const backendNodes = ['node-lesson', 'node-3d', 'node-game', 'node-quiz'];
-        backendNodes.forEach(id => {
-            lines.push(new LeaderLine(
-                document.getElementById('node-gateway'),
-                document.getElementById(id),
-                middlewareToBackend
-            ));
-        });
+    // Node 2 to Node 4 (straight down)
+    lines.push(new LeaderLine(
+        document.getElementById('node-2'),
+        document.getElementById('node-4'),
+        {
+            ...lineOptions,
+            startSocket: 'bottom',
+            endSocket: 'top',
+        }
+    ));
 
-        // 3. Nối 4 Backend modules -> Database
-        backendNodes.forEach(id => {
-            lines.push(new LeaderLine(
-                document.getElementById(id),
-                document.getElementById('node-db'),
-                backendToDatabase
-            ));
-        });
+    // Node 2 to Node 5 (curved, bottom to top)
+    lines.push(new LeaderLine(
+        document.getElementById('node-2'),
+        document.getElementById('node-5'),
+        {
+            ...lineOptions,
+            startSocket: 'bottom',
+            endSocket: 'top',
+            startSocketGravity: [0, 60],
+            endSocketGravity: [0, -60]
+        }
+    ));
+
+    // Node 3 to Node 6
+    lines.push(new LeaderLine(
+        document.getElementById('node-3'),
+        document.getElementById('node-6'),
+        {
+            ...lineOptions,
+            path: 'straight',
+            startSocket: 'bottom',
+            endSocket: 'top'
+        }
+    ));
+
+    // Node 4 to Node 7
+    lines.push(new LeaderLine(
+        document.getElementById('node-4'),
+        document.getElementById('node-7'),
+        {
+            ...lineOptions,
+            path: 'straight',
+            startSocket: 'bottom',
+            endSocket: 'top'
+        }
+    ));
+
+    // Node 5 to Node 8
+    lines.push(new LeaderLine(
+        document.getElementById('node-5'),
+        document.getElementById('node-8'),
+        {
+            ...lineOptions,
+            path: 'straight',
+            startSocket: 'bottom',
+            endSocket: 'top'
+        }
+    ));
+
+    // Continuous positioning loop during animation (first 1.8 seconds)
+    const startTime = performance.now();
+    function animateLines(currentTime) {
+        lines.forEach(line => line.position());
+        if (currentTime - startTime < 1800) {
+            requestAnimationFrame(animateLines);
+        }
     }
+    requestAnimationFrame(animateLines);
 
-    // Đợi layout render xong để LeaderLine tính toán tọa độ chính xác
-    setTimeout(drawLines, 200);
-
-    // Cập nhật lại vị trí các đường nối khi người dùng thu phóng/đổi kích thước cửa sổ
+    // Update lines when resizing the window
     window.addEventListener('resize', () => {
         lines.forEach(line => line.position());
     });
+    
+    // Update lines when scrolling the container
+    document.querySelector('.flowchart-container').addEventListener('scroll', () => {
+        lines.forEach(line => line.position());
+    });
+
+    // --- Web Audio API Sound Effects ---
+    let audioCtx = null;
+    let isMuted = localStorage.getItem('sound_muted') === 'true';
+
+    const soundToggleBtn = document.getElementById('soundToggle');
+    const soundIcon = document.getElementById('soundIcon');
+    const soundText = document.getElementById('soundText');
+
+    function updateSoundUI() {
+        if (soundToggleBtn) {
+            if (isMuted) {
+                soundToggleBtn.classList.add('muted');
+                soundIcon.className = 'fa-solid fa-volume-xmark';
+                soundText.textContent = 'Âm thanh: Tắt';
+            } else {
+                soundToggleBtn.classList.remove('muted');
+                soundIcon.className = 'fa-solid fa-volume-high';
+                soundText.textContent = 'Âm thanh: Bật';
+            }
+        }
+    }
+
+    // Apply initial sound UI from localStorage
+    updateSoundUI();
+
+    // --- Toast Notification Helper ---
+    function showToast(message, iconClass = 'fa-info-circle', type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <i class="fa-solid ${iconClass} toast-icon"></i>
+            <span>${message}</span>
+        `;
+
+        container.appendChild(toast);
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Remove after 2.5s
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 2500);
+    }
+
+    if (soundToggleBtn) {
+        soundToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isMuted = !isMuted;
+            localStorage.setItem('sound_muted', isMuted);
+            updateSoundUI();
+            if (isMuted) {
+                showToast('Đã tắt âm thanh tương tác', 'fa-volume-xmark', 'info');
+            } else {
+                showToast('Đã bật âm thanh tương tác', 'fa-volume-high', 'success');
+                playClickSound();
+            }
+        });
+    }
+
+    function getAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    // Soft hover blip sound
+    function playHoverSound() {
+        if (isMuted) return;
+        try {
+            const ctx = getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(520, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.06);
+
+            gain.gain.setValueAtTime(0.03, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.06);
+        } catch (e) {}
+    }
+
+    // Pop click sound
+    function playClickSound() {
+        if (isMuted) return;
+        try {
+            const ctx = getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+
+            gain.gain.setValueAtTime(0.06, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        } catch (e) {}
+    }
+
+    // Single click / double click handler
+    document.querySelectorAll('.node').forEach(node => {
+        let clickTimer = null;
+
+        node.addEventListener('mouseenter', playHoverSound);
+
+        node.addEventListener('click', (e) => {
+            playClickSound();
+            if (clickTimer) clearTimeout(clickTimer);
+
+            clickTimer = setTimeout(() => {
+                const targetUrl = node.dataset.url;
+                if (targetUrl) {
+                    showToast('Đang chuyển hướng tới bài học...', 'fa-arrow-up-right-from-square', 'info');
+                    let fullUrl = targetUrl;
+                    if (!/^https?:\/\//i.test(fullUrl)) {
+                        fullUrl = 'https://' + fullUrl;
+                    }
+                    window.open(fullUrl, '_blank');
+                }
+                clickTimer = null;
+            }, 250);
+        });
+
+        node.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            }
+            openEditModal(node);
+        });
+    });
+
+    // Store original default HTML node data
+    const defaultNodesData = {};
+    document.querySelectorAll('.node').forEach(node => {
+        const titleEl = node.querySelector('.node-title');
+        const descEl = node.querySelector('.node-desc');
+        defaultNodesData[node.id] = {
+            title: titleEl ? titleEl.textContent.trim() : '',
+            desc: descEl ? descEl.textContent.trim() : ''
+        };
+    });
+
+    // --- Node Editing Modal Logic ---
+    const editModal = document.getElementById('editModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalSaveBtn = document.getElementById('modalSaveBtn');
+    const modalResetBtn = document.getElementById('modalResetBtn');
+    const editTitleInput = document.getElementById('editTitle');
+    const editDescInput = document.getElementById('editDesc');
+    const editLinkInput = document.getElementById('editLink');
+
+    let currentNode = null;
+
+    // Icon Mapping
+    const ICON_MAP = {
+        monitor: 'fa-desktop',
+        book: 'fa-book-open',
+        gamepad: 'fa-gamepad',
+        quiz: 'fa-clipboard-question',
+        grad: 'fa-graduation-cap',
+        cube: 'fa-cube'
+    };
+
+    let selectedIcon = 'monitor';
+    let selectedColor = '#7C3AED';
+
+    // Handle Icon selection click
+    document.querySelectorAll('.icon-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedIcon = btn.dataset.icon;
+            playClickSound();
+        });
+    });
+
+    // Handle Color selection click
+    document.querySelectorAll('.color-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedColor = btn.dataset.color;
+            playClickSound();
+        });
+    });
+
+    function applyNodeCustomStyles(nodeEl, iconKey, colorHex, url) {
+        if (!nodeEl) return;
+        if (colorHex) {
+            nodeEl.style.borderColor = colorHex;
+            nodeEl.style.boxShadow = `-4px 0px 0px 0px ${colorHex}, 0 4px 10px rgba(0,0,0,0.03)`;
+        }
+        if (iconKey && ICON_MAP[iconKey]) {
+            const iconContainer = nodeEl.querySelector('.node-inner');
+            let iconEl = nodeEl.querySelector('.node-icon');
+            if (iconContainer) {
+                const newIcon = document.createElement('i');
+                newIcon.className = `fa-solid ${ICON_MAP[iconKey]} node-icon`;
+                newIcon.style.color = colorHex || '#7C3AED';
+                newIcon.style.fontSize = '20px';
+                newIcon.style.marginTop = '2px';
+                if (iconEl) {
+                    iconEl.replaceWith(newIcon);
+                } else {
+                    iconContainer.insertBefore(newIcon, iconContainer.firstChild);
+                }
+            }
+        }
+        // Link Badge handling
+        let linkBadge = nodeEl.querySelector('.node-link-badge');
+        if (url) {
+            nodeEl.dataset.url = url;
+            if (!linkBadge) {
+                linkBadge = document.createElement('div');
+                linkBadge.className = 'node-link-badge';
+                linkBadge.title = 'Mở liên kết: ' + url;
+                linkBadge.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i>';
+                nodeEl.appendChild(linkBadge);
+            } else {
+                linkBadge.title = 'Mở liên kết: ' + url;
+            }
+        } else {
+            delete nodeEl.dataset.url;
+            if (linkBadge) linkBadge.remove();
+        }
+    }
+
+    // Load saved node data from localStorage
+    function loadSavedNodes() {
+        const savedData = localStorage.getItem('flowchart_nodes_data');
+        if (savedData) {
+            try {
+                const nodesData = JSON.parse(savedData);
+                Object.keys(nodesData).forEach(id => {
+                    const nodeEl = document.getElementById(id);
+                    if (nodeEl) {
+                        const data = nodesData[id];
+                        const titleEl = nodeEl.querySelector('.node-title');
+                        const descEl = nodeEl.querySelector('.node-desc');
+                        if (titleEl && data.title) titleEl.textContent = data.title;
+                        if (descEl && data.desc) descEl.textContent = data.desc;
+                        if (data.icon || data.color || data.url) {
+                            applyNodeCustomStyles(nodeEl, data.icon, data.color, data.url);
+                        }
+                    }
+                });
+            } catch (e) {}
+        }
+    }
+    loadSavedNodes();
+
+    function openEditModal(node) {
+        currentNode = node;
+        const titleEl = node.querySelector('.node-title');
+        const descEl = node.querySelector('.node-desc');
+
+        editTitleInput.value = titleEl ? titleEl.textContent.trim() : '';
+        editDescInput.value = descEl ? descEl.textContent.trim() : '';
+
+        // Retrieve current node's data or defaults
+        const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
+        const nodeData = savedData[node.id] || {};
+
+        editLinkInput.value = nodeData.url || '';
+        selectedIcon = nodeData.icon || 'monitor';
+        selectedColor = nodeData.color || '#7C3AED';
+
+        // Update modal UI active buttons
+        document.querySelectorAll('.icon-opt').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.icon === selectedIcon);
+        });
+        document.querySelectorAll('.color-opt').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.color === selectedColor);
+        });
+
+        editModal.classList.add('active');
+        editTitleInput.focus();
+    }
+
+    function closeEditModal() {
+        editModal.classList.remove('active');
+        currentNode = null;
+    }
+
+    function saveNodeChanges() {
+        if (!currentNode) return;
+
+        const titleEl = currentNode.querySelector('.node-title');
+        const descEl = currentNode.querySelector('.node-desc');
+
+        const newTitle = editTitleInput.value.trim();
+        const newDesc = editDescInput.value.trim();
+        const newUrl = editLinkInput.value.trim();
+
+        if (newTitle && titleEl) titleEl.textContent = newTitle;
+        if (descEl) descEl.textContent = newDesc || 'Nhấp đúp chuột để chỉ...';
+
+        applyNodeCustomStyles(currentNode, selectedIcon, selectedColor, newUrl);
+
+        // Save to localStorage
+        const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
+        savedData[currentNode.id] = {
+            title: newTitle,
+            desc: newDesc,
+            url: newUrl,
+            icon: selectedIcon,
+            color: selectedColor
+        };
+        localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
+
+        // Reposition LeaderLines
+        lines.forEach(line => line.position());
+
+        closeEditModal();
+        showToast('Đã cập nhật liên kết & thông tin khối thành công!', 'fa-circle-check', 'success');
+        playClickSound();
+    }
+
+    function resetNodeToDefault() {
+        if (!currentNode) return;
+
+        const defaults = defaultNodesData[currentNode.id];
+        if (defaults) {
+            const titleEl = currentNode.querySelector('.node-title');
+            const descEl = currentNode.querySelector('.node-desc');
+
+            if (titleEl) titleEl.textContent = defaults.title;
+            if (descEl) descEl.textContent = defaults.desc;
+
+            // Reset inline styles
+            currentNode.style.borderColor = '#7C3AED';
+            currentNode.style.boxShadow = `-4px 0px 0px 0px #7C3AED, 0 4px 10px rgba(0,0,0,0.03)`;
+
+            // Reset icon to default computer image
+            const iconContainer = currentNode.querySelector('.node-inner');
+            let iconEl = currentNode.querySelector('.node-icon');
+            if (iconContainer && iconEl) {
+                const defaultImg = document.createElement('img');
+                defaultImg.src = 'https://img.icons8.com/color/48/monitor--v1.png';
+                defaultImg.alt = 'icon';
+                defaultImg.className = 'node-icon';
+                iconEl.replaceWith(defaultImg);
+            }
+
+            // Remove URL & link badge
+            delete currentNode.dataset.url;
+            const badge = currentNode.querySelector('.node-link-badge');
+            if (badge) badge.remove();
+
+            // Delete custom entry from localStorage
+            const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
+            delete savedData[currentNode.id];
+            localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
+
+            // Reposition LeaderLines
+            lines.forEach(line => line.position());
+        }
+
+        closeEditModal();
+        showToast('Đã khôi phục cài đặt mặc định của khối!', 'fa-rotate-left', 'info');
+        playClickSound();
+    }
+
+    modalCloseBtn?.addEventListener('click', closeEditModal);
+    modalCancelBtn?.addEventListener('click', closeEditModal);
+    modalSaveBtn?.addEventListener('click', saveNodeChanges);
+    modalResetBtn?.addEventListener('click', resetNodeToDefault);
+
+    // Close on overlay click outside card
+    editModal?.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEditModal();
+    });
+
+    // Save on Enter key inside inputs
+    [editTitleInput, editDescInput, editLinkInput].forEach(input => {
+        input?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saveNodeChanges();
+            if (e.key === 'Escape') closeEditModal();
+        });
+    });
+
+    // --- Real-time Search Box Logic ---
+    const searchInput = document.getElementById('searchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchCountBadge = document.getElementById('searchCountBadge');
+
+    function performSearch() {
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const nodes = document.querySelectorAll('.node');
+
+        if (!query) {
+            nodes.forEach(node => {
+                node.classList.remove('search-dimmed', 'search-match');
+            });
+            if (searchCountBadge) {
+                searchCountBadge.classList.remove('visible', 'no-match');
+                searchCountBadge.textContent = '';
+            }
+            return;
+        }
+
+        let firstMatch = null;
+        let matchCount = 0;
+
+        nodes.forEach(node => {
+            const title = (node.querySelector('.node-title')?.textContent || '').toLowerCase();
+            const desc = (node.querySelector('.node-desc')?.textContent || '').toLowerCase();
+
+            if (title.includes(query) || desc.includes(query)) {
+                node.classList.remove('search-dimmed');
+                node.classList.add('search-match');
+                matchCount++;
+                if (!firstMatch) firstMatch = node;
+            } else {
+                node.classList.remove('search-match');
+                node.classList.add('search-dimmed');
+            }
+        });
+
+        if (searchCountBadge) {
+            searchCountBadge.classList.add('visible');
+            if (matchCount > 0) {
+                searchCountBadge.classList.remove('no-match');
+                searchCountBadge.textContent = `Tìm thấy ${matchCount} kết quả`;
+            } else {
+                searchCountBadge.classList.add('no-match');
+                searchCountBadge.textContent = `Không tìm thấy`;
+            }
+        }
+
+        if (firstMatch) {
+            firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
+    }
+
+    searchInput?.addEventListener('input', performSearch);
+
+    searchClearBtn?.addEventListener('click', () => {
+        if (searchInput) {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        }
+    });
+
+    // --- Reset All Nodes Logic ---
+    const resetAllNodesBtn = document.getElementById('resetAllNodesBtn');
+
+    function resetAllNodes() {
+        if (confirm('Bạn có chắc chắn muốn khôi phục toàn bộ 8 khối về cài đặt sơ đồ gốc không?')) {
+            localStorage.removeItem('flowchart_nodes_data');
+
+            document.querySelectorAll('.node').forEach(node => {
+                const defaults = defaultNodesData[node.id];
+                if (defaults) {
+                    const titleEl = node.querySelector('.node-title');
+                    const descEl = node.querySelector('.node-desc');
+                    if (titleEl) titleEl.textContent = defaults.title;
+                    if (descEl) descEl.textContent = defaults.desc;
+                }
+
+                node.style.borderColor = '#7C3AED';
+                node.style.boxShadow = `-4px 0px 0px 0px #7C3AED, 0 4px 10px rgba(0,0,0,0.03)`;
+
+                const iconContainer = node.querySelector('.node-inner');
+                let iconEl = node.querySelector('.node-icon');
+                if (iconContainer && iconEl) {
+                    const defaultImg = document.createElement('img');
+                    defaultImg.src = 'https://img.icons8.com/color/48/monitor--v1.png';
+                    defaultImg.alt = 'icon';
+                    defaultImg.className = 'node-icon';
+                    iconEl.replaceWith(defaultImg);
+                }
+
+                delete node.dataset.url;
+                const badge = node.querySelector('.node-link-badge');
+                if (badge) badge.remove();
+            });
+
+            lines.forEach(line => line.position());
+
+            showToast('Đã khôi phục toàn bộ sơ đồ về mặc định gốc!', 'fa-rotate', 'success');
+            playClickSound();
+        }
+    }
+
+    resetAllNodesBtn?.addEventListener('click', resetAllNodes);
 });
