@@ -1,0 +1,29 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDEs and Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Antigravity temporary files
+.agent/tasks/
+.agent/.shared/
+
+# Python (in case backend is Python later)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/

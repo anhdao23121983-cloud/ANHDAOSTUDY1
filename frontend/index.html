@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom App Architecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.js">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="canvas">
+        <div class="architecture-wrapper">
+            
+            <!-- Layer: Frontend -->
+            <div class="layer layer-frontend">
+                <div class="layer-header">
+                    <i class="fa-solid fa-globe layer-icon"></i>
+                    <div class="layer-title-wrapper">
+                        <h3 class="layer-title">TẦNG GIAO DIỆN (FRONTEND)</h3>
+                        <p class="layer-subtitle">Không có mô tả</p>
+                    </div>
+                </div>
+                <div class="layer-content">
+                    <div class="node" id="node-frontend">
+                        <div class="node-icon-wrapper"><i class="fa-solid fa-desktop node-icon text-blue"></i><i class="fa-solid fa-mobile-screen node-icon text-blue" style="font-size: 0.9rem; margin-left: -5px;"></i></div>
+                        <div class="node-text">
+                            <h4>Giao diện ANH DAO AI STUDY</h4>
+                            <p>Cổng thông tin, Trang...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer: Middleware -->
+            <div class="layer layer-middleware">
+                <div class="layer-header">
+                    <i class="fa-solid fa-shield-halved layer-icon"></i>
+                    <div class="layer-title-wrapper">
+                        <h3 class="layer-title">TẦNG BẢO MẬT & MIDDLEWARE</h3>
+                        <p class="layer-subtitle">Không có mô tả</p>
+                    </div>
+                </div>
+                <div class="layer-content">
+                    <div class="node" id="node-gateway">
+                        <i class="fa-solid fa-shield node-icon text-blue"></i>
+                        <i class="fa-solid fa-globe node-icon text-blue" style="font-size: 1rem; margin-left: 5px;"></i>
+                        <div class="node-text" style="margin-left: 10px;">
+                            <h4>API Gateway & Router</h4>
+                            <p>Điều phối yêu cầu HTT...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer: Backend -->
+            <div class="layer layer-backend">
+                <div class="layer-header">
+                    <i class="fa-solid fa-gears layer-icon"></i>
+                    <div class="layer-title-wrapper">
+                        <h3 class="layer-title">TẦNG NGHIỆP VỤ (BACKEND API)</h3>
+                        <p class="layer-subtitle">Không có mô tả</p>
+                    </div>
+                </div>
+                <div class="layer-content">
+                    <div class="node" id="node-lesson">
+                        <i class="fa-solid fa-book-open node-icon text-green"></i>
+                        <div class="node-text">
+                            <h4>Module Soạn Giáo Án & Sách SGK</h4>
+                            <p>Xử lý nội dung bài họ...</p>
+                        </div>
+                    </div>
+                    <div class="node" id="node-3d">
+                        <i class="fa-solid fa-cube node-icon text-blue"></i>
+                        <div class="node-text">
+                            <h4>Module Phòng Học 3D</h4>
+                            <p>Quản lý mô hình 3D từ...</p>
+                        </div>
+                    </div>
+                    <div class="node" id="node-game">
+                        <i class="fa-solid fa-gamepad node-icon text-purple"></i>
+                        <div class="node-text">
+                            <h4>Module Trò Chơi Tin Học</h4>
+                            <p>Hệ thống mini-game gi...</p>
+                        </div>
+                    </div>
+                    <div class="node" id="node-quiz">
+                        <i class="fa-solid fa-clipboard-question node-icon text-orange"></i>
+                        <div class="node-text">
+                            <h4>Module Bài Kiểm Tra</h4>
+                            <p>Ngân hàng câu hỏi, tạ...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer: Database -->
+            <div class="layer layer-database">
+                <div class="layer-header">
+                    <i class="fa-solid fa-database layer-icon"></i>
+                    <div class="layer-title-wrapper">
+                        <h3 class="layer-title">TẦNG CƠ SỞ DỮ LIỆU (DATABASE)</h3>
+                        <p class="layer-subtitle">Không có mô tả</p>
+                    </div>
+                </div>
+                <div class="layer-content">
+                    <div class="node" id="node-db">
+                        <i class="fa-solid fa-server node-icon text-multi"></i>
+                        <i class="fa-solid fa-database node-icon text-multi" style="margin-left: 5px;"></i>
+                        <div class="node-text" style="margin-left: 10px;">
+                            <h4>Cơ sở dữ liệu chính (Main DB)</h4>
+                            <p>Lưu trữ dữ liệu SGK, ...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-left">
+            <i class="fa-solid fa-graduation-cap"></i> Học viên: anhdao23121983
+        </div>
+        <div class="footer-right">
+            Xuất bản: 07/08/2026 19:43 | Dự án Classroom App
+        </div>
+    </div>
+
+    <!-- Script for curved connectors -->
+    <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
