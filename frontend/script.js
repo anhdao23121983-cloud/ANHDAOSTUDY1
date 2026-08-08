@@ -1884,5 +1884,81 @@ document.addEventListener('DOMContentLoaded', () => {
             quizTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#EF4444;">Lỗi: ${err.message || 'Không thể truy vấn bảng student_quiz_results'}</td></tr>`;
         }
     }
+
+    // --- CSV & Excel Export Utilities (UTF-8 BOM for Vietnamese Support) ---
+    const exportProgressCsvBtn = document.getElementById('exportProgressCsvBtn');
+    const exportQuizCsvBtn = document.getElementById('exportQuizCsvBtn');
+
+    function downloadCsvFile(csvContent, filename) {
+        // \uFEFF ensures UTF-8 BOM so Microsoft Excel renders Vietnamese characters flawlessly
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast(`Đã xuất tệp "${filename}" thành công!`, 'fa-file-excel', 'success');
+        playClickSound();
+    }
+
+    exportProgressCsvBtn?.addEventListener('click', async () => {
+        let studentsData = [];
+
+        if (supabaseClient) {
+            try {
+                const { data } = await supabaseClient.from('students').select('*').order('completed_lessons_count', { ascending: false });
+                if (data && data.length > 0) studentsData = data;
+            } catch (e) {}
+        }
+
+        if (studentsData.length === 0) {
+            studentsData = [{
+                student_name: currentStudent.name,
+                classroom: currentStudent.classroom,
+                completed_lessons_count: completedLessons.length,
+                last_active: new Date().toISOString()
+            }];
+        }
+
+        let csv = 'STT,Họ và tên học sinh,Lớp,Số bài hoàn thành,Tỷ lệ hoàn thành (%),Thời gian hoạt động gần nhất\n';
+        studentsData.forEach((st, idx) => {
+            const percent = Math.round(((st.completed_lessons_count || 0) / 8) * 100);
+            const timeStr = st.last_active ? new Date(st.last_active).toLocaleString('vi-VN') : 'Vừa xong';
+            csv += `"${idx + 1}","${st.student_name}","${st.classroom || '5A'}","${st.completed_lessons_count || 0}/8","${percent}%","${timeStr}"\n`;
+        });
+
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '_');
+        downloadCsvFile(csv, `Bang_Tien_Do_Hoc_Sinh_${currentStudent.classroom}_${today}.csv`);
+    });
+
+    exportQuizCsvBtn?.addEventListener('click', async () => {
+        let quizData = [];
+
+        if (supabaseClient) {
+            try {
+                const { data } = await supabaseClient.from('student_quiz_results').select('*').order('score', { ascending: false });
+                if (data && data.length > 0) quizData = data;
+            } catch (e) {}
+        }
+
+        if (quizData.length === 0) {
+            alert('Chưa có dữ liệu bài thi trắc nghiệm nào để xuất file!');
+            return;
+        }
+
+        let csv = 'Thứ hạng,Họ và tên học sinh,Lớp,Môn kiểm tra,Điểm số,Số câu đúng,Tổng số câu hỏi,Tỷ lệ đạt (%),Kết quả,Thời gian nộp bài\n';
+        quizData.forEach((r, idx) => {
+            const subName = SUBJECT_TEMPLATES[r.subject_id]?.name || r.subject_id;
+            const timeStr = r.completed_at ? new Date(r.completed_at).toLocaleString('vi-VN') : 'Vừa xong';
+            const status = r.percentage >= 50 ? 'Đạt' : 'Chưa đạt';
+            csv += `"${idx + 1}","${r.student_name}","${r.classroom || '5A'}","${subName}","${r.score} Điểm","${r.correct_count}","${r.total_questions}","${r.percentage}%","${status}","${timeStr}"\n`;
+        });
+
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '_');
+        downloadCsvFile(csv, `Bang_Diem_Trac_Nghiem_Quiz_${today}.csv`);
+    });
 });
 

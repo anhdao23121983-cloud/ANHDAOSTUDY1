@@ -298,9 +298,14 @@
                 <div class="tab-content" id="tabContentClass" style="display: none;">
                     <div class="class-actions-bar">
                         <span class="class-summary-text" id="classSummaryText">Đang tải danh sách...</span>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="refreshClassListBtn">
-                            <i class="fa-solid fa-rotate"></i> Làm mới
-                        </button>
+                        <div class="actions-group" style="display:flex; gap:8px;">
+                            <button type="button" class="btn btn-sm btn-outline-success" id="exportProgressCsvBtn" title="Xuất dữ liệu tiến độ học sinh ra file Excel / CSV">
+                                <i class="fa-solid fa-file-excel"></i> Xuất Excel (Tiến độ)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="refreshClassListBtn">
+                                <i class="fa-solid fa-rotate"></i> Làm mới
+                            </button>
+                        </div>
                     </div>
                     <div class="class-table-container">
                         <table class="class-table" id="classTable">
@@ -325,9 +330,14 @@
                 <div class="tab-content" id="tabContentQuiz" style="display: none;">
                     <div class="class-actions-bar">
                         <span class="class-summary-text" id="quizSummaryText">Bảng vàng điểm thi trắc nghiệm</span>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="refreshQuizListBtn">
-                            <i class="fa-solid fa-rotate"></i> Làm mới
-                        </button>
+                        <div class="actions-group" style="display:flex; gap:8px;">
+                            <button type="button" class="btn btn-sm btn-outline-success" id="exportQuizCsvBtn" title="Xuất bảng điểm Quiz ra file Excel / CSV">
+                                <i class="fa-solid fa-file-excel"></i> Xuất Excel (Điểm thi)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="refreshQuizListBtn">
+                                <i class="fa-solid fa-rotate"></i> Làm mới
+                            </button>
+                        </div>
                     </div>
                     <div class="class-table-container">
                         <table class="class-table" id="quizTable">

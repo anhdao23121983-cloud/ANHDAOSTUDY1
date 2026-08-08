@@ -473,6 +473,34 @@ body {
     color: #2563EB;
     border-radius: 6px;
     cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-primary:hover {
+    background: #EFF6FF;
+    border-color: #2563EB;
+    color: #1D4ED8;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+}
+
+.btn-outline-success {
+    background: #FFFFFF;
+    border: 1px solid #10B981;
+    color: #059669;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-success:hover {
+    background: #ECFDF5;
+    border-color: #059669;
+    color: #047857;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
 }
 
 .class-table-container {
