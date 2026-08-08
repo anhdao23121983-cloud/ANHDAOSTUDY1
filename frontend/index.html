@@ -1065,7 +1065,10 @@
                         <label class="remember-label">
                             <input type="checkbox" id="rememberMeCheck" checked> Ghi nhớ đăng nhập
                         </label>
-                        <a href="javascript:void(0)" id="quickFillHocSinh" class="auth-hint-link">🎓 Tài khoản mẫu học sinh</a>
+                        <div style="display: flex; gap: 12px;">
+                            <a href="javascript:void(0)" id="quickFillHocSinh" class="auth-hint-link">🎓 Học sinh mẫu</a>
+                            <a href="javascript:void(0)" id="forgotPasswordLink" class="auth-hint-link" style="color:#EF4444;"><i class="fa-solid fa-circle-question"></i> Quên mật khẩu?</a>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary auth-submit-btn" id="loginSubmitBtn">
@@ -1177,6 +1180,47 @@
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
                 </button>
                 <button class="btn btn-secondary" id="changePasswordCancelBtn">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password & Account Recovery Modal -->
+    <div class="modal-overlay" id="forgotPasswordModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> Khôi phục Mật khẩu Tài khoản</h3>
+                <button class="modal-close" id="forgotModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 16px;">
+                    Nhập tên đăng nhập và mã PIN bảo mật của Giáo viên (mặc định: <strong>1234</strong>) để đặt lại mật khẩu mới trực tiếp vào cơ sở dữ liệu Supabase:
+                </p>
+
+                <div class="auth-alert-box" id="forgotAlertBox" style="display: none;"></div>
+
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label for="forgotUsernameInput"><i class="fa-solid fa-user"></i> Tên đăng nhập cần khôi phục:</label>
+                        <input type="text" id="forgotUsernameInput" placeholder="VD: hocsinh5a" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="forgotPinInput"><i class="fa-solid fa-shield-halved"></i> Mã PIN Giáo viên bảo trợ (4 số):</label>
+                        <input type="password" id="forgotPinInput" maxlength="6" placeholder="1234" required style="letter-spacing: 4px; font-weight: 700;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="forgotNewPasswordInput"><i class="fa-solid fa-lock"></i> Mật khẩu mới (tối thiểu 6 ký tự):</label>
+                        <input type="password" id="forgotNewPasswordInput" placeholder="Nhập mật khẩu mới" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-submit-btn" id="forgotSubmitBtn" style="margin-top: 8px;">
+                        <i class="fa-solid fa-rotate"></i> Đặt lại mật khẩu & Đăng nhập ngay
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="forgotCancelBtn" style="width: 100%;">Hủy bỏ</button>
             </div>
         </div>
     </div>

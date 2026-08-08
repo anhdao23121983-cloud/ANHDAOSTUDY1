@@ -396,6 +396,84 @@ class AuthService {
     }
 
     /**
+     * KHÔI PHỤC MẬT KHẨU QUA MÃ PIN BẢO TRỢ CỦA GIÁO VIÊN
+     */
+    async resetPasswordWithPin({ username, pin, newPassword }) {
+        username = (username || '').trim().toLowerCase();
+        if (!username || !newPassword) {
+            throw new Error('Vui lòng nhập tên đăng nhập và mật khẩu mới!');
+        }
+        if (pin !== '1234') {
+            throw new Error('Mã PIN bảo trợ của Giáo viên không chính xác (mặc định: 1234)!');
+        }
+        if (newPassword.length < 6) {
+            throw new Error('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+        }
+
+        const supabase = this.getSupabase();
+
+        if (supabase) {
+            // 1. Kiểm tra tài khoản tồn tại
+            const { data: user, error } = await supabase
+                .from('app_users')
+                .select('*')
+                .eq('username', username)
+                .maybeSingle();
+
+            if (error || !user) {
+                throw new Error(`Không tìm thấy tài khoản "${username}" trong hệ thống!`);
+            }
+
+            // 2. Tạo mã băm mới và cập nhật Supabase
+            const newSalt = this.generateSalt();
+            const newHash = await this.hashPassword(newPassword, newSalt);
+
+            const { error: updateErr } = await supabase
+                .from('app_users')
+                .update({
+                    password_hash: newHash,
+                    salt: newSalt
+                })
+                .eq('id', user.id);
+
+            if (updateErr) {
+                console.error('Lỗi reset password Supabase:', updateErr);
+                throw new Error('Không thể cập nhật mật khẩu trên Supabase: ' + updateErr.message);
+            }
+
+            // 3. Tự động đăng nhập
+            return this.setCurrentSession(user, this.generateToken(), true);
+        } else {
+            // Local fallback
+            const localUsers = JSON.parse(localStorage.getItem('anhdao_local_users') || '[]');
+            const user = localUsers.find(u => u.username === username);
+
+            if (!user) {
+                if (username === 'hocsinh5a') {
+                    const demoUser = {
+                        id: 'demo_1',
+                        username: 'hocsinh5a',
+                        full_name: 'Đào Thùy Anh',
+                        classroom: '5A',
+                        role: 'student',
+                        avatar: 'https://img.icons8.com/color/96/student-male.png'
+                    };
+                    return this.setCurrentSession(demoUser, 'demo_token', true);
+                }
+                throw new Error(`Tên đăng nhập "${username}" không tồn tại!`);
+            }
+
+            const newSalt = this.generateSalt();
+            const newHash = await this.hashPassword(newPassword, newSalt);
+            user.password_hash = newHash;
+            user.salt = newSalt;
+            localStorage.setItem('anhdao_local_users', JSON.stringify(localUsers));
+
+            return this.setCurrentSession(user, this.generateToken(), true);
+        }
+    }
+
+    /**
      * Lấy người dùng hiện tại
      */
     getUser() {
@@ -419,4 +497,5 @@ class AuthService {
 
 // Khởi tạo Singleton toàn cục
 window.authService = new AuthService();
+
 

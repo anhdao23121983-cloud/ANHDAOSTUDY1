@@ -3460,6 +3460,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Forgot Password & Account Recovery Event Handlers
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const forgotModalCloseBtn = document.getElementById('forgotModalCloseBtn');
+    const forgotCancelBtn = document.getElementById('forgotCancelBtn');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const forgotAlertBox = document.getElementById('forgotAlertBox');
+
+    function showForgotAlert(msg, type = 'error') {
+        if (!forgotAlertBox) return;
+        forgotAlertBox.className = `auth-alert-box ${type}`;
+        forgotAlertBox.innerHTML = (type === 'error' ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : '<i class="fa-solid fa-circle-check"></i> ') + msg;
+        forgotAlertBox.style.display = 'block';
+    }
+
+    forgotPasswordLink?.addEventListener('click', () => {
+        authModal?.classList.remove('active');
+        if (forgotAlertBox) forgotAlertBox.style.display = 'none';
+        forgotPasswordModal?.classList.add('active');
+        playClickSound();
+    });
+
+    forgotModalCloseBtn?.addEventListener('click', () => forgotPasswordModal?.classList.remove('active'));
+    forgotCancelBtn?.addEventListener('click', () => forgotPasswordModal?.classList.remove('active'));
+
+    forgotPasswordForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('forgotUsernameInput')?.value || '';
+        const pin = document.getElementById('forgotPinInput')?.value || '';
+        const newPassword = document.getElementById('forgotNewPasswordInput')?.value || '';
+        const btn = document.getElementById('forgotSubmitBtn');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực & khôi phục Supabase...';
+        }
+
+        try {
+            const user = await window.authService.resetPasswordWithPin({ username, pin, newPassword });
+            showForgotAlert('Khôi phục mật khẩu thành công! Đã tự động đăng nhập vào tài khoản.', 'success');
+            showToast(`Khôi phục tài khoản ${user.full_name} thành công!`, 'fa-circle-check', 'success');
+            playVictoryFanfare();
+            launchConfetti();
+            setTimeout(() => {
+                forgotPasswordModal?.classList.remove('active');
+            }, 1600);
+        } catch (err) {
+            console.error('Lỗi khôi phục tài khoản:', err);
+            showForgotAlert(err.message || 'Không thể khôi phục tài khoản!');
+            playErrorSound();
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Đặt lại mật khẩu & Đăng nhập ngay';
+            }
+        }
+    });
+
     window.addEventListener('auth:stateChange', () => syncAuthUI());
     syncAuthUI();
 
