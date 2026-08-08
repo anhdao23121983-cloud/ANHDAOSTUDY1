@@ -3357,38 +3357,108 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Logout
     userLogoutBtn?.addEventListener('click', async () => {
         await window.authService.logout();
-        showToast('Đã đăng xuất tài khoản thành công!', 'fa-right-from-bracket', 'info');
+    // User Profile Pill Click -> Open Change Password & Profile Modal
+    const changePasswordModal = document.getElementById('changePasswordModal');
+    const changePasswordModalCloseBtn = document.getElementById('changePasswordModalCloseBtn');
+    const changePasswordCancelBtn = document.getElementById('changePasswordCancelBtn');
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    const changePasswordAlertBox = document.getElementById('changePasswordAlertBox');
+    const modalProfileAvatar = document.getElementById('modalProfileAvatar');
+    const modalProfileName = document.getElementById('modalProfileName');
+    const modalProfileUsername = document.getElementById('modalProfileUsername');
+    const modalProfileClassRole = document.getElementById('modalProfileClassRole');
+    const toggleNewPasswordEye = document.getElementById('toggleNewPasswordEye');
+    const logoutFromModalBtn = document.getElementById('logoutFromModalBtn');
+
+    function showChangePassAlert(msg, type = 'error') {
+        if (!changePasswordAlertBox) return;
+        changePasswordAlertBox.className = `auth-alert-box ${type}`;
+        changePasswordAlertBox.innerHTML = (type === 'error' ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : '<i class="fa-solid fa-circle-check"></i> ') + msg;
+        changePasswordAlertBox.style.display = 'block';
+    }
+
+    userProfilePill?.addEventListener('click', (e) => {
+        // Prevent if clicked directly on the mini logout button
+        if (e.target.closest('#userLogoutBtn')) return;
+
+        const user = window.authService.getUser();
+        if (!user) return;
+
+        if (modalProfileName) modalProfileName.textContent = user.full_name;
+        if (modalProfileUsername) modalProfileUsername.textContent = `@${user.username}`;
+        if (modalProfileClassRole) {
+            modalProfileClassRole.textContent = user.role === 'teacher' ? `Giáo viên • ${user.classroom}` : `Lớp ${user.classroom} • Học sinh`;
+        }
+        if (modalProfileAvatar) modalProfileAvatar.src = user.avatar;
+        if (changePasswordAlertBox) changePasswordAlertBox.style.display = 'none';
+
+        changePasswordModal?.classList.add('active');
         playClickSound();
     });
 
-    // Update UI when Auth State changes
-    function syncAuthUI() {
-        const user = window.authService ? window.authService.getUser() : null;
-        if (user) {
-            if (openAuthModalBtn) openAuthModalBtn.style.display = 'none';
-            if (userProfilePill) userProfilePill.style.display = 'flex';
-            if (userDisplayName) userDisplayName.textContent = user.full_name;
-            if (userRoleBadge) {
-                userRoleBadge.textContent = user.role === 'teacher' ? `Giáo viên • ${user.classroom}` : `Lớp ${user.classroom} • Học sinh`;
-            }
-            if (userAvatarMini) userAvatarMini.src = user.avatar;
+    changePasswordModalCloseBtn?.addEventListener('click', () => changePasswordModal?.classList.remove('active'));
+    changePasswordCancelBtn?.addEventListener('click', () => changePasswordModal?.classList.remove('active'));
 
-            // Auto-unlock Teacher Mode if role is teacher
-            if (user.role === 'teacher') {
-                isTeacherMode = true;
-                if (teacherLockIcon) teacherLockIcon.className = 'fa-solid fa-lock-open';
-                if (teacherLockText) teacherLockText.textContent = 'GV: Đã mở';
-                if (teacherModeBtn) teacherModeBtn.classList.add('active');
-            }
+    logoutFromModalBtn?.addEventListener('click', async () => {
+        changePasswordModal?.classList.remove('active');
+        await window.authService.logout();
+        showToast('Đã đăng xuất tài khoản!', 'fa-right-from-bracket', 'info');
+        playClickSound();
+    });
 
-            // Sync current student profile state
-            currentStudent.name = user.full_name;
-            currentStudent.classroom = user.classroom;
-        } else {
-            if (openAuthModalBtn) openAuthModalBtn.style.display = 'inline-flex';
-            if (userProfilePill) userProfilePill.style.display = 'none';
+    toggleNewPasswordEye?.addEventListener('click', () => {
+        const inp = document.getElementById('newPasswordInput');
+        const icon = document.getElementById('newPasswordEyeIcon');
+        if (inp && icon) {
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
         }
-    }
+    });
+
+    changePasswordForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const oldPassword = document.getElementById('oldPasswordInput')?.value || '';
+        const newPassword = document.getElementById('newPasswordInput')?.value || '';
+        const confirmNewPassword = document.getElementById('confirmNewPasswordInput')?.value || '';
+        const btn = document.getElementById('changePasswordSubmitBtn');
+
+        if (newPassword !== confirmNewPassword) {
+            showChangePassAlert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+            playErrorSound();
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang mã hóa & cập nhật Supabase...';
+        }
+
+        try {
+            await window.authService.changePassword({ oldPassword, newPassword });
+            showChangePassAlert('Đổi mật khẩu thành công! Dữ liệu đã được lưu trên Supabase Cloud.', 'success');
+            showToast('Đổi mật khẩu bảo mật thành công!', 'fa-circle-check', 'success');
+            playVictoryFanfare();
+            launchConfetti();
+            changePasswordForm.reset();
+            setTimeout(() => {
+                changePasswordModal?.classList.remove('active');
+            }, 1600);
+        } catch (err) {
+            console.error('Lỗi đổi mật khẩu:', err);
+            showChangePassAlert(err.message || 'Mật khẩu cũ không chính xác!');
+            playErrorSound();
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật mật khẩu Supabase';
+            }
+        }
+    });
 
     window.addEventListener('auth:stateChange', () => syncAuthUI());
     syncAuthUI();

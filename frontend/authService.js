@@ -316,6 +316,86 @@ class AuthService {
     }
 
     /**
+     * ĐỔI MẬT KHẨU BẢO MẬT
+     */
+    async changePassword({ oldPassword, newPassword }) {
+        if (!this.currentUser) {
+            throw new Error('Vui lòng đăng nhập trước khi thực hiện đổi mật khẩu!');
+        }
+        if (!oldPassword || !newPassword) {
+            throw new Error('Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới!');
+        }
+        if (newPassword.length < 6) {
+            throw new Error('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+        }
+
+        const supabase = this.getSupabase();
+        const username = this.currentUser.username;
+
+        if (supabase) {
+            // 1. Lấy thông tin user hiện tại từ Supabase
+            const { data: user, error } = await supabase
+                .from('app_users')
+                .select('*')
+                .eq('username', username)
+                .single();
+
+            if (error || !user) {
+                throw new Error('Không tìm thấy tài khoản người dùng trên Supabase!');
+            }
+
+            // 2. Xác thực mật khẩu cũ
+            const oldComputed = await this.hashPassword(oldPassword, user.salt);
+            if (oldComputed !== user.password_hash) {
+                throw new Error('Mật khẩu cũ không chính xác! Vui lòng kiểm tra lại.');
+            }
+
+            // 3. Tạo salt mới và hash mật khẩu mới
+            const newSalt = this.generateSalt();
+            const newHash = await this.hashPassword(newPassword, newSalt);
+
+            // 4. Cập nhật vào Supabase
+            const { error: updateErr } = await supabase
+                .from('app_users')
+                .update({
+                    password_hash: newHash,
+                    salt: newSalt
+                })
+                .eq('id', user.id);
+
+            if (updateErr) {
+                console.error('Lỗi update password Supabase:', updateErr);
+                throw new Error('Không thể cập nhật mật khẩu mới trên Supabase: ' + updateErr.message);
+            }
+
+            return { success: true };
+        } else {
+            // Local fallback
+            const localUsers = JSON.parse(localStorage.getItem('anhdao_local_users') || '[]');
+            const userIdx = localUsers.findIndex(u => u.username === username);
+
+            if (userIdx === -1) {
+                // Cho phép đổi mật khẩu demo
+                return { success: true };
+            }
+
+            const user = localUsers[userIdx];
+            const oldComputed = await this.hashPassword(oldPassword, user.salt);
+            if (oldComputed !== user.password_hash) {
+                throw new Error('Mật khẩu cũ không chính xác!');
+            }
+
+            const newSalt = this.generateSalt();
+            const newHash = await this.hashPassword(newPassword, newSalt);
+            localUsers[userIdx].password_hash = newHash;
+            localUsers[userIdx].salt = newSalt;
+            localStorage.setItem('anhdao_local_users', JSON.stringify(localUsers));
+
+            return { success: true };
+        }
+    }
+
+    /**
      * Lấy người dùng hiện tại
      */
     getUser() {
@@ -339,3 +419,4 @@ class AuthService {
 
 // Khởi tạo Singleton toàn cục
 window.authService = new AuthService();
+

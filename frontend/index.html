@@ -59,7 +59,7 @@
                 </button>
 
                 <!-- Profile Dropdown (Active when logged in) -->
-                <div class="user-profile-pill" id="userProfilePill" style="display: none;">
+                <div class="user-profile-pill" id="userProfilePill" style="display: none;" title="Bấm vào để xem thông tin tài khoản & Đổi mật khẩu">
                     <img src="https://img.icons8.com/color/96/student-male.png" alt="Avatar" class="user-avatar-mini" id="userAvatarMini">
                     <div class="user-info-text">
                         <div class="user-display-name" id="userDisplayName">Đào Thùy Anh</div>
@@ -1124,6 +1124,59 @@
                         <i class="fa-solid fa-user-plus"></i> Tạo tài khoản & Lưu vào Supabase
                     </button>
                 </form>
+    <!-- User Profile & Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-shield"></i> Thông tin & Đổi mật khẩu</h3>
+                <button class="modal-close" id="changePasswordModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Profile Overview Box -->
+                <div class="profile-overview-card">
+                    <img src="https://img.icons8.com/color/96/student-male.png" alt="Avatar" class="profile-modal-avatar" id="modalProfileAvatar">
+                    <div class="profile-modal-details">
+                        <h4 id="modalProfileName" style="margin: 0; color: #1E293B; font-size: 16px;">Đào Thùy Anh</h4>
+                        <div id="modalProfileUsername" style="font-size: 13px; color: #6366F1; font-weight: 600;">@hocsinh5a</div>
+                        <div id="modalProfileClassRole" style="font-size: 12px; color: #64748B;">Lớp 5A • Học sinh</div>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 18px 0;">
+
+                <div class="auth-alert-box" id="changePasswordAlertBox" style="display: none;"></div>
+
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="oldPasswordInput"><i class="fa-solid fa-key"></i> Mật khẩu hiện tại:</label>
+                        <input type="password" id="oldPasswordInput" placeholder="Nhập mật khẩu cũ" required autocomplete="current-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPasswordInput"><i class="fa-solid fa-lock"></i> Mật khẩu mới (tối thiểu 6 ký tự):</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="newPasswordInput" placeholder="Nhập mật khẩu mới" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-eye" id="toggleNewPasswordEye" title="Ẩn/Hiện mật khẩu">
+                                <i class="fa-solid fa-eye" id="newPasswordEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmNewPasswordInput"><i class="fa-solid fa-shield-check"></i> Xác nhận lại mật khẩu mới:</label>
+                        <input type="password" id="confirmNewPasswordInput" placeholder="Nhập lại mật khẩu mới" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-submit-btn" id="changePasswordSubmitBtn" style="margin-top: 8px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật mật khẩu Supabase
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-danger" id="logoutFromModalBtn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+                </button>
+                <button class="btn btn-secondary" id="changePasswordCancelBtn">Đóng</button>
             </div>
         </div>
     </div>

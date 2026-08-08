@@ -2696,6 +2696,42 @@ body.accessibility-xl-text .action-btn {
     gap: 12px;
 }
 
+.user-profile-pill {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-profile-pill:hover {
+    border-color: #7C3AED;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.18);
+}
+
+.profile-overview-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #F8FAFC;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+}
+
+.profile-modal-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 2px solid #7C3AED;
+    background: #FFFFFF;
+}
+
+.profile-modal-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+
 
 
 
