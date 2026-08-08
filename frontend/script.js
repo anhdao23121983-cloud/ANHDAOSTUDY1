@@ -3098,6 +3098,86 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFontScale(currentFontScale);
     }
 
+    // --- 20. Text-To-Speech (AI Voice Lesson Reader) ---
+    const ttsToggleBtn = document.getElementById('ttsToggleBtn');
+    const ttsIcon = document.getElementById('ttsIcon');
+    const ttsText = document.getElementById('ttsText');
+    let isTtsEnabled = localStorage.getItem('tts_auto_read') === 'true';
+
+    function updateTtsButtonUI() {
+        if (!ttsToggleBtn) return;
+        if (isTtsEnabled) {
+            ttsToggleBtn.classList.add('active');
+            if (ttsIcon) ttsIcon.className = 'fa-solid fa-volume-high fa-beat-fade';
+            if (ttsText) ttsText.textContent = 'Đọc AI: Bật';
+        } else {
+            ttsToggleBtn.classList.remove('active');
+            if (ttsIcon) ttsIcon.className = 'fa-solid fa-volume-low';
+            if (ttsText) ttsText.textContent = 'Đọc AI: Tắt';
+        }
+    }
+    updateTtsButtonUI();
+
+    ttsToggleBtn?.addEventListener('click', () => {
+        isTtsEnabled = !isTtsEnabled;
+        localStorage.setItem('tts_auto_read', isTtsEnabled);
+        updateTtsButtonUI();
+        if (isTtsEnabled) {
+            showToast('Đã bật giọng đọc AI: Nhấp vào bất kỳ khối bài học nào để nghe AI đọc to bài!', 'fa-volume-high', 'success');
+            speakText('Đã bật giọng đọc trợ thính bài học AI Study!');
+        } else {
+            showToast('Đã tắt giọng đọc AI tự động.', 'fa-volume-xmark', 'info');
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+        playClickSound();
+    });
+
+    function speakText(text, targetElement = null) {
+        if (!('speechSynthesis' in window)) {
+            showToast('Trình duyệt không hỗ trợ đọc giọng nói Text-To-Speech!', 'fa-triangle-exclamation', 'error');
+            return;
+        }
+
+        window.speechSynthesis.cancel(); // Stop current speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.95;
+        utterance.pitch = 1.05;
+
+        if (targetElement) {
+            targetElement.classList.add('speaking-active');
+            utterance.onend = () => targetElement.classList.remove('speaking-active');
+            utterance.onerror = () => targetElement.classList.remove('speaking-active');
+        }
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Attach speak button and click listener to all nodes
+    document.querySelectorAll('.node').forEach(node => {
+        const title = node.querySelector('.node-title')?.textContent.trim() || '';
+        const desc = node.querySelector('.node-desc')?.textContent.trim() || '';
+
+        // Add subtle speak icon button
+        const speakBtn = document.createElement('button');
+        speakBtn.className = 'node-speak-btn';
+        speakBtn.title = 'Nghe AI đọc to bài học này';
+        speakBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+        speakBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            speakText(`Bài học: ${title}. Nội dung tóm tắt: ${desc}`, node);
+            playClickSound();
+        });
+        node.appendChild(speakBtn);
+
+        // If TTS auto-read is enabled, clicking the node also reads aloud
+        node.addEventListener('click', () => {
+            if (isTtsEnabled) {
+                speakText(`Bài học: ${title}. ${desc}`, node);
+            }
+        });
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -3106,9 +3186,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (percent >= 70) {
             launchConfetti();
             playVictoryFanfare();
+            if (isTtsEnabled) {
+                speakText(`Chúc mừng em ${currentStudent.name} đã hoàn thành bài thi trắc nghiệm xuất sắc với điểm số ${quizScoreCorrect * 10} điểm!`);
+            }
         }
     };
 });
+
 
 
 
