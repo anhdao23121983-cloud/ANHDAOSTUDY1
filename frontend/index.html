@@ -36,9 +36,41 @@
                     <i class="fa-solid fa-folder-plus"></i> <span>Tạo môn mới</span>
                 </button>
             </div>
+
+            <!-- AI Adaptive Learning Roadmap Button -->
+            <button class="action-btn btn-roadmap" id="openRoadmapBtn" title="Lộ trình học tập thích ứng cá nhân hóa AI">
+                <i class="fa-solid fa-route"></i>
+                <span>Lộ trình AI</span>
+            </button>
+
+            <!-- Memory Match Flashcards Game Button -->
+            <button class="action-btn btn-flashcard" id="openFlashcardBtn" title="Trò chơi Ghép thẻ ghi nhớ Flashcard lật bài tương tác">
+                <i class="fa-solid fa-clone"></i>
+                <span>Ghép thẻ Flashcard</span>
+            </button>
         </div>
 
         <div class="top-controls-right">
+            <!-- User Authentication Widget (Logged In Profile or Login/Register Button) -->
+            <div class="user-auth-container" id="userAuthContainer">
+                <button class="action-btn btn-auth" id="openAuthModalBtn" title="Đăng nhập hoặc Tạo tài khoản mới">
+                    <i class="fa-solid fa-user-lock"></i>
+                    <span>Đăng nhập / Đăng ký</span>
+                </button>
+
+                <!-- Profile Dropdown (Active when logged in) -->
+                <div class="user-profile-pill" id="userProfilePill" style="display: none;">
+                    <img src="https://img.icons8.com/color/96/student-male.png" alt="Avatar" class="user-avatar-mini" id="userAvatarMini">
+                    <div class="user-info-text">
+                        <div class="user-display-name" id="userDisplayName">Đào Thùy Anh</div>
+                        <div class="user-role-badge" id="userRoleBadge">Lớp 5A • Học sinh</div>
+                    </div>
+                    <button class="btn-logout-mini" id="userLogoutBtn" title="Đăng xuất tài khoản">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+
             <!-- Share Diagram Button -->
             <button class="action-btn btn-share" id="shareDiagramBtn" title="Chia sẻ sơ đồ bài học qua Zalo, Facebook, QR">
                 <i class="fa-solid fa-share-nodes"></i>
@@ -904,6 +936,198 @@
         </div>
     </div>
 
+    <!-- Adaptive Learning Roadmap & AI Recommendation Modal -->
+    <div class="modal-overlay" id="roadmapModal">
+        <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-route"></i> Lộ trình Học tập Thích ứng & Gợi ý Thông minh AI</h3>
+                <button class="modal-close" id="roadmapModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="roadmap-header-card">
+                    <div class="roadmap-badge-level" id="roadmapLevelBadge">
+                        <i class="fa-solid fa-medal"></i> Cấp độ 2: Nâng cao kỹ năng
+                    </div>
+                    <p style="margin: 6px 0 0 0; font-size: 13px; color: #475569;">
+                        Hệ thống AI tự động phân tích điểm số bài thi Quiz và tiến độ hoàn thành các khối để đề xuất lộ trình tối ưu cho từng học sinh.
+                    </p>
+                </div>
+
+                <div class="roadmap-stepper-container">
+                    <div class="roadmap-step done">
+                        <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                        <div class="step-label">1. Cơ sở Nền tảng</div>
+                        <div class="step-sub">Đã đạt chuẩn</div>
+                    </div>
+                    <div class="roadmap-step-line done"></div>
+                    <div class="roadmap-step active">
+                        <div class="step-circle"><i class="fa-solid fa-crosshairs"></i></div>
+                        <div class="step-label">2. Nâng cao Kỹ năng</div>
+                        <div class="step-sub">Khuyên học ngay</div>
+                    </div>
+                    <div class="roadmap-step-line"></div>
+                    <div class="roadmap-step">
+                        <div class="step-circle"><i class="fa-solid fa-lock"></i></div>
+                        <div class="step-label">3. Chinh phục Thử thách</div>
+                        <div class="step-sub">Chưa mở khóa</div>
+                    </div>
+                    <div class="roadmap-step-line"></div>
+                    <div class="roadmap-step">
+                        <div class="step-circle"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="step-label">4. Đỉnh cao Xuất sắc</div>
+                        <div class="step-sub">Đích đến 100%</div>
+                    </div>
+                </div>
+
+                <div class="ai-recommend-box">
+                    <div class="rec-icon"><i class="fa-solid fa-brain"></i></div>
+                    <div class="rec-content">
+                        <h4 id="recTopicTitle" style="margin:0 0 4px 0; color:#1E293B; font-size:15px;">Bài học đề xuất: Khối 5 - THỰC HÀNH & LUYỆN TẬP</h4>
+                        <p id="recReasonText" style="margin:0; font-size:13px; color:#64748B;">
+                            Dựa trên điểm kiểm tra trắc nghiệm, AI khuyến nghị học sinh nên luyện tập thêm bài tập thực hành trên máy tính để củng cố thao tác gõ phím và sử dụng phần mềm.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-secondary" id="roadmapModalCancelBtn">Đóng</button>
+                <button class="btn btn-primary" id="startRecommendedLessonBtn">
+                    <i class="fa-solid fa-arrow-trend-up"></i> Bắt đầu bài học đề xuất ngay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Match Flashcard Game Modal -->
+    <div class="modal-overlay" id="flashcardGameModal">
+        <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clone"></i> Trò chơi Ghép thẻ Ghi nhớ Flashcards</h3>
+                <button class="modal-close" id="flashcardModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="flashcard-stats-header">
+                    <div class="f-stat"><i class="fa-solid fa-clock"></i> Thời gian: <strong id="flashcardTimerText">00:00</strong></div>
+                    <div class="f-stat"><i class="fa-solid fa-rotate"></i> Lượt lật: <strong id="flashcardMovesText">0</strong></div>
+                    <div class="f-stat"><i class="fa-solid fa-star" style="color:#F59E0B;"></i> Đã ghép: <strong id="flashcardPairsText">0 / 6</strong></div>
+                </div>
+
+                <div class="flashcards-grid" id="flashcardsGrid">
+                    <!-- 12 3D Flip Cards rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-secondary" id="flashcardQuitBtn">Thoát trò chơi</button>
+                <button class="btn btn-primary" id="flashcardRestartBtn">
+                    <i class="fa-solid fa-rotate-left"></i> Chơi lại từ đầu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Authentication Modal (Login & Register) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <div class="auth-modal-tabs">
+                    <button class="auth-tab-btn active" id="authTabLogin">
+                        <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                    </button>
+                    <button class="auth-tab-btn" id="authTabRegister">
+                        <i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản
+                    </button>
+                </div>
+                <button class="modal-close" id="authModalCloseBtn">&times;</button>
+            </div>
+
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Error / Success Alert Box -->
+                <div class="auth-alert-box" id="authAlertBox" style="display: none;"></div>
+
+                <!-- Form 1: Đăng nhập (Login) -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername"><i class="fa-solid fa-user"></i> Tên đăng nhập (Username):</label>
+                        <input type="text" id="loginUsername" placeholder="Nhập username (VD: hocsinh5a)" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword"><i class="fa-solid fa-key"></i> Mật khẩu (Password):</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-eye" id="toggleLoginPasswordEye" title="Ẩn/Hiện mật khẩu">
+                                <i class="fa-solid fa-eye" id="loginEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-extra-row">
+                        <label class="remember-label">
+                            <input type="checkbox" id="rememberMeCheck" checked> Ghi nhớ đăng nhập
+                        </label>
+                        <a href="javascript:void(0)" id="quickFillHocSinh" class="auth-hint-link">🎓 Tài khoản mẫu học sinh</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-submit-btn" id="loginSubmitBtn">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập ngay
+                    </button>
+                </form>
+
+                <!-- Form 2: Đăng ký tài khoản mới (Register) -->
+                <form id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="regFullName"><i class="fa-solid fa-id-card"></i> Họ và tên người dùng:</label>
+                        <input type="text" id="regFullName" placeholder="VD: Nguyễn Văn An" required>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="regUsername"><i class="fa-solid fa-user"></i> Tên đăng nhập:</label>
+                            <input type="text" id="regUsername" placeholder="chữ_số_lien_nhau" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="regClassroom"><i class="fa-solid fa-school"></i> Lớp học:</label>
+                            <select id="regClassroom">
+                                <option value="5A">Lớp 5A</option>
+                                <option value="5B">Lớp 5B</option>
+                                <option value="5C">Lớp 5C</option>
+                                <option value="5D">Lớp 5D</option>
+                                <option value="Khối 5">Khối 5 (Toàn khối)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regRole"><i class="fa-solid fa-user-tag"></i> Vai trò người dùng:</label>
+                        <select id="regRole">
+                            <option value="student">🎓 Học sinh</option>
+                            <option value="teacher">👨‍🏫 Giáo viên / Quản trị</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regPassword"><i class="fa-solid fa-lock"></i> Mật khẩu (tối thiểu 6 ký tự):</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="regPassword" placeholder="Nhập mật khẩu mới" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-eye" id="toggleRegPasswordEye" title="Ẩn/Hiện mật khẩu">
+                                <i class="fa-solid fa-eye" id="regEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regConfirmPassword"><i class="fa-solid fa-shield-check"></i> Xác nhận lại mật khẩu:</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Nhập lại mật khẩu" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-submit-btn" id="registerSubmitBtn">
+                        <i class="fa-solid fa-user-plus"></i> Tạo tài khoản & Lưu vào Supabase
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -918,6 +1142,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseConfig.js"></script>
+    <script src="authService.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
     <script src="script.js"></script>

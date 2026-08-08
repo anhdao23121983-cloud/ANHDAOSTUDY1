@@ -3178,6 +3178,361 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- 21. User Authentication (Login & Register) & Supabase Sync ---
+    const openAuthModalBtn = document.getElementById('openAuthModalBtn');
+    const authModal = document.getElementById('authModal');
+    const authModalCloseBtn = document.getElementById('authModalCloseBtn');
+    const authTabLogin = document.getElementById('authTabLogin');
+    const authTabRegister = document.getElementById('authTabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authAlertBox = document.getElementById('authAlertBox');
+    const userProfilePill = document.getElementById('userProfilePill');
+    const userAvatarMini = document.getElementById('userAvatarMini');
+    const userDisplayName = document.getElementById('userDisplayName');
+    const userRoleBadge = document.getElementById('userRoleBadge');
+    const userLogoutBtn = document.getElementById('userLogoutBtn');
+    const toggleLoginPasswordEye = document.getElementById('toggleLoginPasswordEye');
+    const toggleRegPasswordEye = document.getElementById('toggleRegPasswordEye');
+    const quickFillHocSinh = document.getElementById('quickFillHocSinh');
+
+    function showAuthAlert(msg, type = 'error') {
+        if (!authAlertBox) return;
+        authAlertBox.className = `auth-alert-box ${type}`;
+        authAlertBox.innerHTML = (type === 'error' ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : '<i class="fa-solid fa-circle-check"></i> ') + msg;
+        authAlertBox.style.display = 'block';
+    }
+
+    function hideAuthAlert() {
+        if (authAlertBox) authAlertBox.style.display = 'none';
+    }
+
+    // Tab Switching
+    authTabLogin?.addEventListener('click', () => {
+        authTabLogin.classList.add('active');
+        authTabRegister?.classList.remove('active');
+        if (loginForm) loginForm.style.display = 'block';
+        if (registerForm) registerForm.style.display = 'none';
+        hideAuthAlert();
+        playClickSound();
+    });
+
+    authTabRegister?.addEventListener('click', () => {
+        authTabRegister.classList.add('active');
+        authTabLogin?.classList.remove('active');
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'block';
+        hideAuthAlert();
+        playClickSound();
+    });
+
+    openAuthModalBtn?.addEventListener('click', () => {
+        authModal?.classList.add('active');
+        hideAuthAlert();
+        playClickSound();
+    });
+
+    authModalCloseBtn?.addEventListener('click', () => {
+        authModal?.classList.remove('active');
+    });
+
+    // Toggle Password Visibility Eye
+    toggleLoginPasswordEye?.addEventListener('click', () => {
+        const inp = document.getElementById('loginPassword');
+        const icon = document.getElementById('loginEyeIcon');
+        if (inp && icon) {
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+    });
+
+    toggleRegPasswordEye?.addEventListener('click', () => {
+        const inp = document.getElementById('regPassword');
+        const icon = document.getElementById('regEyeIcon');
+        if (inp && icon) {
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+    });
+
+    // Quick Fill Demo Credentials
+    quickFillHocSinh?.addEventListener('click', () => {
+        const u = document.getElementById('loginUsername');
+        const p = document.getElementById('loginPassword');
+        if (u) u.value = 'hocsinh5a';
+        if (p) p.value = '123456';
+        showToast('Đã điền tài khoản học sinh mẫu: hocsinh5a / 123456', 'fa-user-check', 'info');
+        playClickSound();
+    });
+
+    // Handle Login Submit
+    loginForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAuthAlert();
+        const username = document.getElementById('loginUsername')?.value || '';
+        const password = document.getElementById('loginPassword')?.value || '';
+        const remember = document.getElementById('rememberMeCheck')?.checked ?? true;
+        const btn = document.getElementById('loginSubmitBtn');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực Supabase...';
+        }
+
+        try {
+            const user = await window.authService.login({ username, password, remember });
+            showToast(`Chào mừng ${user.full_name} đã đăng nhập thành công!`, 'fa-circle-check', 'success');
+            authModal?.classList.remove('active');
+            playVictoryFanfare();
+            launchConfetti();
+        } catch (err) {
+            console.error('Lỗi đăng nhập:', err);
+            showAuthAlert(err.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
+            playErrorSound();
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập ngay';
+            }
+        }
+    });
+
+    // Handle Register Submit
+    registerForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAuthAlert();
+        const fullName = document.getElementById('regFullName')?.value || '';
+        const username = document.getElementById('regUsername')?.value || '';
+        const classroom = document.getElementById('regClassroom')?.value || '5A';
+        const role = document.getElementById('regRole')?.value || 'student';
+        const password = document.getElementById('regPassword')?.value || '';
+        const confirmPassword = document.getElementById('regConfirmPassword')?.value || '';
+        const btn = document.getElementById('registerSubmitBtn');
+
+        if (password !== confirmPassword) {
+            showAuthAlert('Mật khẩu xác nhận không khớp! Vui lòng nhập lại.');
+            playErrorSound();
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tạo tài khoản trên Supabase Cloud...';
+        }
+
+        try {
+            const user = await window.authService.register({
+                username,
+                password,
+                fullName,
+                classroom,
+                role
+            });
+            showToast(`Tạo tài khoản thành công! Đã đồng bộ lên Supabase.`, 'fa-circle-check', 'success');
+            authModal?.classList.remove('active');
+            playVictoryFanfare();
+            launchConfetti();
+        } catch (err) {
+            console.error('Lỗi đăng ký:', err);
+            showAuthAlert(err.message || 'Không thể tạo tài khoản trên Supabase!');
+            playErrorSound();
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Tạo tài khoản & Lưu vào Supabase';
+            }
+        }
+    });
+
+    // Handle Logout
+    userLogoutBtn?.addEventListener('click', async () => {
+        await window.authService.logout();
+        showToast('Đã đăng xuất tài khoản thành công!', 'fa-right-from-bracket', 'info');
+        playClickSound();
+    });
+
+    // Update UI when Auth State changes
+    function syncAuthUI() {
+        const user = window.authService ? window.authService.getUser() : null;
+        if (user) {
+            if (openAuthModalBtn) openAuthModalBtn.style.display = 'none';
+            if (userProfilePill) userProfilePill.style.display = 'flex';
+            if (userDisplayName) userDisplayName.textContent = user.full_name;
+            if (userRoleBadge) {
+                userRoleBadge.textContent = user.role === 'teacher' ? `Giáo viên • ${user.classroom}` : `Lớp ${user.classroom} • Học sinh`;
+            }
+            if (userAvatarMini) userAvatarMini.src = user.avatar;
+
+            // Auto-unlock Teacher Mode if role is teacher
+            if (user.role === 'teacher') {
+                isTeacherMode = true;
+                if (teacherLockIcon) teacherLockIcon.className = 'fa-solid fa-lock-open';
+                if (teacherLockText) teacherLockText.textContent = 'GV: Đã mở';
+                if (teacherModeBtn) teacherModeBtn.classList.add('active');
+            }
+
+            // Sync current student profile state
+            currentStudent.name = user.full_name;
+            currentStudent.classroom = user.classroom;
+        } else {
+            if (openAuthModalBtn) openAuthModalBtn.style.display = 'inline-flex';
+            if (userProfilePill) userProfilePill.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('auth:stateChange', () => syncAuthUI());
+    syncAuthUI();
+
+    // --- 22. Memory Match Flashcards Interactive Game ---
+    const openFlashcardBtn = document.getElementById('openFlashcardBtn');
+    const flashcardGameModal = document.getElementById('flashcardGameModal');
+    const flashcardModalCloseBtn = document.getElementById('flashcardModalCloseBtn');
+    const flashcardQuitBtn = document.getElementById('flashcardQuitBtn');
+    const flashcardRestartBtn = document.getElementById('flashcardRestartBtn');
+    const flashcardsGrid = document.getElementById('flashcardsGrid');
+    const flashcardTimerText = document.getElementById('flashcardTimerText');
+    const flashcardMovesText = document.getElementById('flashcardMovesText');
+    const flashcardPairsText = document.getElementById('flashcardPairsText');
+
+    let flashcardTimerInterval = null;
+    let flashcardSeconds = 0;
+    let flashcardMoves = 0;
+    let flashcardMatchedPairs = 0;
+    let flippedCards = [];
+    let isFlipping = false;
+
+    const FLASHCARD_PAIRS = [
+        { id: 1, text: '🖥️ Màn hình', matchText: 'Thiết bị xuất hình ảnh đầu ra' },
+        { id: 2, text: '⌨️ Bàn phím', matchText: 'Thiết bị nhập ký tự & phím gõ' },
+        { id: 3, text: '🖱️ Chuột máy tính', matchText: 'Thiết bị điều khiển con trỏ' },
+        { id: 4, text: '💻 Thân máy (CPU)', matchText: 'Bộ não xử lý dữ liệu trung tâm' },
+        { id: 5, text: '🌐 Mạng Internet', matchText: 'Kết nối thông tin toàn cầu' },
+        { id: 6, text: '🧠 Trí tuệ AI', matchText: 'Trợ lý học tập thông minh' }
+    ];
+
+    function startFlashcardGame() {
+        flashcardSeconds = 0;
+        flashcardMoves = 0;
+        flashcardMatchedPairs = 0;
+        flippedCards = [];
+        isFlipping = false;
+        clearInterval(flashcardTimerInterval);
+
+        if (flashcardMovesText) flashcardMovesText.textContent = '0';
+        if (flashcardPairsText) flashcardPairsText.textContent = `0 / ${FLASHCARD_PAIRS.length}`;
+        if (flashcardTimerText) flashcardTimerText.textContent = '00:00';
+
+        // Prepare 12 cards (6 pairs)
+        let cardsData = [];
+        FLASHCARD_PAIRS.forEach(p => {
+            cardsData.push({ pairId: p.id, label: p.text });
+            cardsData.push({ pairId: p.id, label: p.matchText });
+        });
+
+        // Shuffle
+        cardsData.sort(() => Math.random() - 0.5);
+
+        if (flashcardsGrid) {
+            flashcardsGrid.innerHTML = '';
+            cardsData.forEach((c, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'flashcard-item';
+                cardEl.dataset.pairId = c.pairId;
+                cardEl.innerHTML = `
+                    <div class="flashcard-front"><i class="fa-solid fa-question"></i></div>
+                    <div class="flashcard-back">${c.label}</div>
+                `;
+                cardEl.addEventListener('click', () => onCardClick(cardEl));
+                flashcardsGrid.appendChild(cardEl);
+            });
+        }
+
+        // Start Stopwatch
+        flashcardTimerInterval = setInterval(() => {
+            flashcardSeconds++;
+            const m = String(Math.floor(flashcardSeconds / 60)).padStart(2, '0');
+            const s = String(flashcardSeconds % 60).padStart(2, '0');
+            if (flashcardTimerText) flashcardTimerText.textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function onCardClick(card) {
+        if (isFlipping || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+        card.classList.add('flipped');
+        flippedCards.push(card);
+        playMechanicalKeyClick();
+
+        if (flippedCards.length === 2) {
+            flashcardMoves++;
+            if (flashcardMovesText) flashcardMovesText.textContent = flashcardMoves;
+            checkCardMatch();
+        }
+    }
+
+    function checkCardMatch() {
+        isFlipping = true;
+        const [c1, c2] = flippedCards;
+        const match = c1.dataset.pairId === c2.dataset.pairId;
+
+        if (match) {
+            setTimeout(() => {
+                c1.classList.add('matched');
+                c2.classList.add('matched');
+                flippedCards = [];
+                isFlipping = false;
+                flashcardMatchedPairs++;
+                if (flashcardPairsText) flashcardPairsText.textContent = `${flashcardMatchedPairs} / ${FLASHCARD_PAIRS.length}`;
+                playClickSound();
+
+                if (flashcardMatchedPairs === FLASHCARD_PAIRS.length) {
+                    clearInterval(flashcardTimerInterval);
+                    launchConfetti();
+                    playVictoryFanfare();
+                    showToast(`Tuyệt vời! Em đã hoàn thành trò chơi ghép thẻ trong ${flashcardMoves} lượt lật!`, 'fa-trophy', 'success');
+                }
+            }, 300);
+        } else {
+            setTimeout(() => {
+                c1.classList.remove('flipped');
+                c2.classList.remove('flipped');
+                flippedCards = [];
+                isFlipping = false;
+            }, 900);
+        }
+    }
+
+    openFlashcardBtn?.addEventListener('click', () => {
+        flashcardGameModal?.classList.add('active');
+        startFlashcardGame();
+        playClickSound();
+    });
+
+    flashcardModalCloseBtn?.addEventListener('click', () => {
+        clearInterval(flashcardTimerInterval);
+        flashcardGameModal?.classList.remove('active');
+    });
+
+    flashcardQuitBtn?.addEventListener('click', () => {
+        clearInterval(flashcardTimerInterval);
+        flashcardGameModal?.classList.remove('active');
+    });
+
+    flashcardRestartBtn?.addEventListener('click', () => {
+        startFlashcardGame();
+        playClickSound();
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -3192,6 +3547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 
