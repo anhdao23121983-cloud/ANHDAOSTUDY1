@@ -1,10 +1,9 @@
 /**
  * CẤU HÌNH SUPABASE DATABASE (ANH DAO AI STUDY)
  * ----------------------------------------------------
- * Thầy (cô) có thể dán thông tin Project URL và Anon Public Key vào đây
- * hoặc nhập trực tiếp từ nút "Cấu hình Supabase" trên giao diện website.
+ * Tích hợp tự động với dự án Supabase Cloud của thầy (cô)
  */
 window.SUPABASE_DEFAULT_CONFIG = {
-    url: 'https://YOUR_PROJECT_ID.supabase.co',
-    anonKey: 'YOUR_SUPABASE_ANON_PUBLIC_KEY'
+    url: 'https://xqqckatsnsxukgeuxeit.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxcWNrYXRzbnN4dWtnZXV4ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxODI5NjMsImV4cCI6MjEwMTc1ODk2M30.TQw7Wdi9pYd4Uqhw5_vslgRnfy5O4nYAPOlLktlpkkE'
 };
