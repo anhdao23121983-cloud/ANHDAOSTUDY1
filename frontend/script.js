@@ -3988,12 +3988,96 @@ document.addEventListener('DOMContentLoaded', () => {
         localBroadcastChannel = new BroadcastChannel('anhdao_classroom_live_sync');
     } catch (e) {}
 
+    // Raise Hand in Live Broadcast
+    const raiseHandBtn = document.getElementById('raiseHandBtn');
+    const raiseHandText = document.getElementById('raiseHandText');
+    const teacherRaisedHandsBox = document.getElementById('teacherRaisedHandsBox');
+    const raisedHandsList = document.getElementById('raisedHandsList');
+    const raisedHandsCountText = document.getElementById('raisedHandsCountText');
+    const clearHandsBtn = document.getElementById('clearHandsBtn');
+    let isHandRaised = false;
+    let raisedHandsData = [];
+
+    raiseHandBtn?.addEventListener('click', () => {
+        isHandRaised = !isHandRaised;
+        const user = window.authService ? window.authService.getUser() : null;
+        const studentName = user ? user.full_name : currentStudent.name;
+        const avatar = user ? user.avatar : 'https://img.icons8.com/color/96/student-male.png';
+
+        if (isHandRaised) {
+            raiseHandBtn.classList.add('raised');
+            if (raiseHandText) raiseHandText.textContent = '✋ Đã giơ tay (Nhấn để hạ)';
+            showToast('Em đã giơ tay xin phát biểu! Thầy cô sẽ sớm mời em nhé.', 'fa-hand', 'info');
+            playClickSound();
+
+            const payload = { studentName, avatar, classroom: currentStudent.classroom || '5A', time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) };
+            if (realtimeLiveChannel) realtimeLiveChannel.send({ type: 'broadcast', event: 'student_raise_hand', payload });
+            if (localBroadcastChannel) localBroadcastChannel.postMessage({ event: 'student_raise_hand', payload });
+        } else {
+            raiseHandBtn.classList.remove('raised');
+            if (raiseHandText) raiseHandText.textContent = 'Giơ tay phát biểu';
+            showToast('Đã hạ tay.', 'fa-hand', 'info');
+            playClickSound();
+
+            const payload = { studentName };
+            if (realtimeLiveChannel) realtimeLiveChannel.send({ type: 'broadcast', event: 'student_lower_hand', payload });
+            if (localBroadcastChannel) localBroadcastChannel.postMessage({ event: 'student_lower_hand', payload });
+        }
+    });
+
+    clearHandsBtn?.addEventListener('click', () => {
+        raisedHandsData = [];
+        if (raisedHandsList) raisedHandsList.innerHTML = '';
+        if (raisedHandsCountText) raisedHandsCountText.textContent = '0';
+        if (teacherRaisedHandsBox) teacherRaisedHandsBox.style.display = 'none';
+        showToast('Đã hạ tay toàn bộ học sinh.', 'fa-circle-check', 'info');
+        playClickSound();
+    });
+
+    function handleStudentRaiseHand(student) {
+        if (!isBroadcasting) return; // Only teacher sees raised hands drawer
+        if (!raisedHandsData.some(s => s.studentName === student.studentName)) {
+            raisedHandsData.push(student);
+        }
+
+        if (teacherRaisedHandsBox) teacherRaisedHandsBox.style.display = 'block';
+        if (raisedHandsCountText) raisedHandsCountText.textContent = raisedHandsData.length;
+
+        if (raisedHandsList) {
+            raisedHandsList.innerHTML = raisedHandsData.map(s => `
+                <div class="raised-hand-item">
+                    <div class="raised-hand-left">
+                        <img src="${s.avatar}" class="raised-hand-img">
+                        <div>
+                            <div class="raised-hand-name">${s.studentName}</div>
+                            <small style="font-size:10px; color:#B45309;">Lớp ${s.classroom} • ${s.time}</small>
+                        </div>
+                    </div>
+                    <button class="btn-call-student" onclick="showToast('Mời em ${s.studentName} phát biểu!', 'fa-microphone', 'success'); playClickSound();">Mời</button>
+                </div>
+            `).join('');
+        }
+
+        showToast(`✋ Học sinh ${student.studentName} vừa giơ tay xin phát biểu!`, 'fa-hand', 'success');
+        playBellSound();
+    }
+
+    function handleStudentLowerHand({ studentName }) {
+        raisedHandsData = raisedHandsData.filter(s => s.studentName !== studentName);
+        if (raisedHandsCountText) raisedHandsCountText.textContent = raisedHandsData.length;
+        if (raisedHandsData.length === 0 && teacherRaisedHandsBox) {
+            teacherRaisedHandsBox.style.display = 'none';
+        }
+    }
+
     // Init Supabase Realtime Channel
     if (supabaseClient) {
         realtimeLiveChannel = supabaseClient.channel('classroom-live-stream');
         realtimeLiveChannel
             .on('broadcast', { event: 'teacher_cursor' }, (payload) => handleTeacherCursor(payload.payload))
             .on('broadcast', { event: 'stream_status' }, (payload) => handleStreamStatus(payload.payload))
+            .on('broadcast', { event: 'student_raise_hand' }, (payload) => handleStudentRaiseHand(payload.payload))
+            .on('broadcast', { event: 'student_lower_hand' }, (payload) => handleStudentLowerHand(payload.payload))
             .subscribe();
     }
 
@@ -4001,6 +4085,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localBroadcastChannel.onmessage = (e) => {
             if (e.data.event === 'teacher_cursor') handleTeacherCursor(e.data.payload);
             if (e.data.event === 'stream_status') handleStreamStatus(e.data.payload);
+            if (e.data.event === 'student_raise_hand') handleStudentRaiseHand(e.data.payload);
+            if (e.data.event === 'student_lower_hand') handleStudentLowerHand(e.data.payload);
         };
     }
 

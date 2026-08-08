@@ -176,10 +176,27 @@
             <span id="liveBannerTeacherName">👨‍🏫 Cô Giáo Anh Đào đang giảng bài trực tiếp môn Tin học lớp 5A</span>
         </div>
         <div class="live-banner-right">
+            <!-- Raise Hand Button for Student -->
+            <button class="btn-raise-hand" id="raiseHandBtn" title="Giơ tay xin phát biểu ý kiến trong giờ học">
+                <i class="fa-solid fa-hand"></i>
+                <span id="raiseHandText">Giơ tay phát biểu</span>
+            </button>
+
             <label class="live-follow-toggle">
                 <input type="checkbox" id="followTeacherCheckbox" checked>
                 <span>Tự động theo dõi trỏ chuột của Giáo viên</span>
             </label>
+        </div>
+    </div>
+
+    <!-- Teacher Raised Hands Floating Notification Box -->
+    <div class="teacher-raised-hands-box" id="teacherRaisedHandsBox" style="display: none;">
+        <div class="raised-hands-header">
+            <span><i class="fa-solid fa-hand fa-bounce" style="color: #F59E0B;"></i> Học sinh giơ tay (<strong id="raisedHandsCountText">0</strong>)</span>
+            <button class="btn-clear-hands" id="clearHandsBtn" title="Hạ tay tất cả">Hạ tay tất cả</button>
+        </div>
+        <div class="raised-hands-list" id="raisedHandsList">
+            <!-- Dynamic student cards rendered by JS -->
         </div>
     </div>
 

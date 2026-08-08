@@ -3155,6 +3155,128 @@ body.accessibility-xl-text .action-btn {
     white-space: nowrap;
 }
 
+/* Raise Hand in Live Broadcast */
+.btn-raise-hand {
+    background: #F59E0B;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.btn-raise-hand:hover {
+    background: #D97706;
+    transform: scale(1.04);
+}
+
+.btn-raise-hand.raised {
+    background: #10B981;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.7);
+    animation: handBounce 1s infinite alternate;
+}
+
+@keyframes handBounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-3px); }
+}
+
+.teacher-raised-hands-box {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    width: 280px;
+    background: #FFFFFF;
+    border-radius: 14px;
+    border: 1.5px solid #F59E0B;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    padding: 12px;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.raised-hands-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E293B;
+    border-bottom: 1px solid #F1F5F9;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+
+.btn-clear-hands {
+    background: #F1F5F9;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.btn-clear-hands:hover {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
+.raised-hands-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.raised-hand-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+.raised-hand-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.raised-hand-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+.raised-hand-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #92400E;
+}
+
+.btn-call-student {
+    background: #10B981;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
 
 
 
