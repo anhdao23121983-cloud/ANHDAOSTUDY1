@@ -37,6 +37,17 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Theme Mode Toggle (Dark/Light) -->
+            <button class="theme-toggle-btn" id="themeToggle" title="Chuyển đổi Chế độ Sáng / Tối">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+
+            <!-- Teacher Lock/Unlock Mode Button -->
+            <button class="action-btn btn-teacher-lock" id="teacherModeBtn" title="Khóa / Mở khóa Chế độ Giáo viên (Mã PIN: 1234)">
+                <i class="fa-solid fa-lock" id="teacherLockIcon"></i>
+                <span id="teacherLockText">Giáo viên</span>
+            </button>
+
             <!-- Interactive Quiz Button -->
             <button class="action-btn btn-quiz" id="openQuizBtn" title="Làm bài kiểm tra trắc nghiệm tương tác">
                 <i class="fa-solid fa-file-circle-check"></i>
@@ -587,6 +598,97 @@
                     <button class="btn btn-primary" id="viewerCloseBtn">Đóng</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Teacher PIN Security Lock Modal -->
+    <div class="modal-overlay" id="teacherPinModal">
+        <div class="modal-card modal-card-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-shield"></i> Xác thực Giáo viên</h3>
+                <button class="modal-close" id="teacherPinModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Vui lòng nhập mã PIN bảo mật của Giáo viên để mở khóa toàn quyền quản trị hệ thống (Mã PIN mặc định: <strong>1234</strong>):</p>
+                <div class="form-group">
+                    <label for="teacherPinInput">Mã PIN Giáo viên (4 số):</label>
+                    <input type="password" id="teacherPinInput" maxlength="6" placeholder="••••" style="text-align: center; font-size: 20px; letter-spacing: 8px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-right" style="width:100%; justify-content:flex-end;">
+                    <button class="btn btn-secondary" id="teacherPinCancelBtn">Hủy</button>
+                    <button class="btn btn-primary" id="teacherPinSubmitBtn">
+                        <i class="fa-solid fa-lock-open"></i> Mở khóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent QR Code Report Modal -->
+    <div class="modal-overlay" id="qrReportModal">
+        <div class="modal-card" style="max-width: 440px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-qrcode"></i> Phiếu Báo Cáo Phụ Huynh (QR)</h3>
+                <button class="modal-close" id="qrReportModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="qr-card-preview">
+                    <h4 id="qrStudentName" style="color:#1E293B; margin:0 0 4px 0; font-size:18px;">Học sinh: Đào Thùy Anh</h4>
+                    <p id="qrStudentClass" style="color:#64748B; margin:0 0 16px 0; font-size:13px;">Lớp 5A - Trường Tiểu học</p>
+                    <div class="qr-image-container" style="margin: 0 auto 16px auto; width: 200px; height: 200px; padding: 10px; background: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 12px;">
+                        <img id="qrCodeImage" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ANH_DAO_STUDY_REPORT" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                    <p style="font-size: 12.5px; color: #475569; line-height: 1.5; margin: 0;">
+                        Quét mã QR bằng Camera điện thoại hoặc Zalo để xem ngay chi tiết tiến độ học tập và điểm số bài thi của con em.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn btn-primary" id="qrReportCloseBtn">
+                    <i class="fa-solid fa-check"></i> Đã hiểu & Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating AI Study Assistant Trigger Button -->
+    <div class="ai-floating-widget" id="aiChatWidget">
+        <button class="ai-floating-btn" id="aiChatToggleBtn" title="Hỏi đáp Trợ lý AI Study">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Trợ lý AI</span>
+            <span class="ai-pulse-dot"></span>
+        </button>
+    </div>
+
+    <!-- AI Study Assistant Chat Window Modal -->
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header">
+            <div class="ai-header-left">
+                <i class="fa-solid fa-robot ai-avatar-icon"></i>
+                <div>
+                    <h4 class="ai-title">Trợ lý Gia sư AI Study</h4>
+                    <span class="ai-status-text"><span class="ai-online-dot"></span> Trực tuyến (Sẵn sàng giải đáp)</span>
+                </div>
+            </div>
+            <button class="ai-close-btn" id="aiChatCloseBtn">&times;</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatMessages">
+            <div class="ai-msg ai-msg-bot">
+                <div class="ai-msg-bubble">
+                    Xin chào thầy cô và các em học sinh! 🎓 Em là <strong>Trợ lý Gia sư AI Study</strong>. Thầy cô và các em cần em giải thích bài học, giải toán, gợi ý bài văn hay kiểm tra kiến thức môn nào ạ?
+                </div>
+            </div>
+        </div>
+        <div class="ai-quick-suggestions">
+            <button class="ai-sug-btn" data-q="Tóm tắt trọng tâm bài học môn Tin học lớp 5">💡 Bài học Tin học</button>
+            <button class="ai-sug-btn" data-q="Cách giải nhanh bài toán tỉ số phần trăm lớp 5">📐 Mẹo Toán lớp 5</button>
+            <button class="ai-sug-btn" data-q="Gợi ý dàn ý bài văn tả cảnh thiên nhiên mến yêu">📖 Dàn ý Tập làm văn</button>
+        </div>
+        <div class="ai-chat-footer">
+            <input type="text" id="aiChatInput" placeholder="Nhập câu hỏi bài học..." autocomplete="off">
+            <button class="ai-send-btn" id="aiChatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 

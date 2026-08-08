@@ -2266,15 +2266,224 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Update finishQuiz celebration with Confetti
+    // --- 1. Audio Synthesizer: Victory Fanfare & Applause ---
+    function playVictoryFanfare() {
+        if (!soundEnabled) return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            // Play chord progression (C5 -> E5 -> G5 -> C6)
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+
+                gain.gain.setValueAtTime(0.01, ctx.currentTime + idx * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + idx * 0.12 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.8);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + idx * 0.12);
+                osc.stop(ctx.currentTime + idx * 0.12 + 0.85);
+            });
+        } catch (e) {}
+    }
+
+    // --- 2. Dark Mode / Theme Toggle ---
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let isDarkMode = localStorage.getItem('theme_mode') === 'dark';
+
+    function applyTheme(dark) {
+        isDarkMode = dark;
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        if (themeIcon) {
+            themeIcon.className = isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            themeIcon.style.color = isDarkMode ? '#F59E0B' : '#64748B';
+        }
+        localStorage.setItem('theme_mode', isDarkMode ? 'dark' : 'light');
+        setTimeout(() => lines.forEach(line => line.position()), 100);
+    }
+
+    themeToggle?.addEventListener('click', () => {
+        applyTheme(!isDarkMode);
+        showToast(isDarkMode ? 'Đã bật Chế độ Ban đêm (Dark Mode)!' : 'Đã chuyển về Chế độ Sáng (Light Mode)!', 'fa-circle-half-stroke', 'info');
+        playClickSound();
+    });
+
+    if (isDarkMode) applyTheme(true);
+
+    // --- 3. Teacher Security PIN Verification (Default: 1234) ---
+    const teacherModeBtn = document.getElementById('teacherModeBtn');
+    const teacherLockIcon = document.getElementById('teacherLockIcon');
+    const teacherLockText = document.getElementById('teacherLockText');
+    const teacherPinModal = document.getElementById('teacherPinModal');
+    const teacherPinModalCloseBtn = document.getElementById('teacherPinModalCloseBtn');
+    const teacherPinCancelBtn = document.getElementById('teacherPinCancelBtn');
+    const teacherPinSubmitBtn = document.getElementById('teacherPinSubmitBtn');
+    const teacherPinInput = document.getElementById('teacherPinInput');
+    let isTeacherUnlocked = false;
+
+    teacherModeBtn?.addEventListener('click', () => {
+        if (isTeacherUnlocked) {
+            isTeacherUnlocked = false;
+            teacherModeBtn.classList.remove('unlocked');
+            if (teacherLockIcon) teacherLockIcon.className = 'fa-solid fa-lock';
+            if (teacherLockText) teacherLockText.textContent = 'Giáo viên';
+            showToast('Đã khóa lại Chế độ Giáo viên.', 'fa-lock', 'info');
+        } else {
+            if (teacherPinInput) teacherPinInput.value = '';
+            teacherPinModal?.classList.add('active');
+            teacherPinInput?.focus();
+        }
+        playClickSound();
+    });
+
+    teacherPinModalCloseBtn?.addEventListener('click', () => teacherPinModal?.classList.remove('active'));
+    teacherPinCancelBtn?.addEventListener('click', () => teacherPinModal?.classList.remove('active'));
+
+    teacherPinSubmitBtn?.addEventListener('click', () => {
+        const pin = teacherPinInput ? teacherPinInput.value.trim() : '';
+        if (pin === '1234') {
+            isTeacherUnlocked = true;
+            teacherModeBtn?.classList.add('unlocked');
+            if (teacherLockIcon) teacherLockIcon.className = 'fa-solid fa-lock-open';
+            if (teacherLockText) teacherLockText.textContent = 'Giáo viên (Đã mở)';
+            teacherPinModal?.classList.remove('active');
+            showToast('Mở khóa Chế độ Giáo viên thành công! Thầy cô có toàn quyền quản trị.', 'fa-lock-open', 'success');
+            playClickSound();
+        } else {
+            alert('Mã PIN không chính xác! Vui lòng thử lại (Mã mặc định: 1234).');
+            if (teacherPinInput) teacherPinInput.focus();
+        }
+    });
+
+    teacherPinInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') teacherPinSubmitBtn?.click();
+    });
+
+    // --- 4. Parent QR Code Report Card Modal ---
+    const openQrReportBtn = document.createElement('button');
+    openQrReportBtn.type = 'button';
+    openQrReportBtn.className = 'btn btn-sm btn-outline-primary';
+    openQrReportBtn.id = 'openQrReportBtn';
+    openQrReportBtn.innerHTML = '<i class="fa-solid fa-qrcode"></i> Báo cáo QR Phụ huynh';
+
+    const tabContentClassActionBar = document.querySelector('#tabContentClass .actions-group');
+    if (tabContentClassActionBar) {
+        tabContentClassActionBar.prepend(openQrReportBtn);
+    }
+
+    const qrReportModal = document.getElementById('qrReportModal');
+    const qrReportModalCloseBtn = document.getElementById('qrReportModalCloseBtn');
+    const qrReportCloseBtn = document.getElementById('qrReportCloseBtn');
+    const qrStudentName = document.getElementById('qrStudentName');
+    const qrStudentClass = document.getElementById('qrStudentClass');
+    const qrCodeImage = document.getElementById('qrCodeImage');
+
+    openQrReportBtn?.addEventListener('click', () => {
+        if (qrStudentName) qrStudentName.textContent = `Học sinh: ${currentStudent.name}`;
+        if (qrStudentClass) qrStudentClass.textContent = `Lớp ${currentStudent.classroom} - Hoàn thành ${completedLessons.length}/8 bài`;
+
+        if (qrCodeImage) {
+            const reportData = `https://anhdaostudy.edu.vn/report?student=${encodeURIComponent(currentStudent.name)}&class=${encodeURIComponent(currentStudent.classroom)}&done=${completedLessons.length}`;
+            qrCodeImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reportData)}`;
+        }
+
+        qrReportModal?.classList.add('active');
+        playClickSound();
+    });
+
+    qrReportModalCloseBtn?.addEventListener('click', () => qrReportModal?.classList.remove('active'));
+    qrReportCloseBtn?.addEventListener('click', () => qrReportModal?.classList.remove('active'));
+
+    // --- 5. AI Study Assistant Chatbot Widget ---
+    const aiChatToggleBtn = document.getElementById('aiChatToggleBtn');
+    const aiChatWindow = document.getElementById('aiChatWindow');
+    const aiChatCloseBtn = document.getElementById('aiChatCloseBtn');
+    const aiChatInput = document.getElementById('aiChatInput');
+    const aiChatSendBtn = document.getElementById('aiChatSendBtn');
+    const aiChatMessages = document.getElementById('aiChatMessages');
+
+    aiChatToggleBtn?.addEventListener('click', () => {
+        aiChatWindow?.classList.toggle('active');
+        if (aiChatWindow?.classList.contains('active')) {
+            aiChatInput?.focus();
+        }
+        playClickSound();
+    });
+
+    aiChatCloseBtn?.addEventListener('click', () => {
+        aiChatWindow?.classList.remove('active');
+    });
+
+    function appendAiMessage(text, isUser = false) {
+        if (!aiChatMessages) return;
+        const msg = document.createElement('div');
+        msg.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
+        msg.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+        aiChatMessages.appendChild(msg);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+    }
+
+    function processAiResponse(query) {
+        const q = query.toLowerCase();
+        let reply = '';
+
+        if (q.includes('tin học') || q.includes('máy tính') || q.includes('word') || q.includes('phím')) {
+            reply = `💻 <strong>Mẹo môn Tin học lớp 5:</strong><br>• Phím tắt lưu bài: <code>Ctrl + S</code><br>• Phím tắt sao chép: <code>Ctrl + C</code> và dán: <code>Ctrl + V</code><br>• Khi tạo bài thuyết trình PowerPoint: Hãy dùng hình ảnh minh họa sinh động và phông chữ to rõ ràng nhé!`;
+        } else if (q.includes('toán') || q.includes('phần trăm') || q.includes('diện tích') || q.includes('vận tốc')) {
+            reply = `📐 <strong>Công thức Toán lớp 5 trọng tâm:</strong><br>• Diện tích hình thang: <code>S = (a + b) × h : 2</code><br>• Công thức vận tốc: <code>v = s : t</code><br>• Muốn tìm tỉ số phần trăm của 2 số a và b: Ta lấy a chia cho b rồi nhân với 100%!`;
+        } else if (q.includes('văn') || q.includes('tiếng việt') || q.includes('dàn ý') || q.includes('tả')) {
+            reply = `📖 <strong>Dàn ý bài văn miêu tả cảnh thiên nhiên:</strong><br>1. <strong>Mở bài:</strong> Giới thiệu khung cảnh em định tả (buổi sáng quê hương, công viên...).<br>2. <strong>Thân bài:</strong> Tả bao quát rồi tả chi tiết (bầu trời, giọt sương, chim chóc...).<br>3. <strong>Kết bài:</strong> Tình cảm, niềm tự hào và sự gắn bó của em với quê hương!`;
+        } else {
+            const sub = SUBJECT_TEMPLATES[currentSubjectId]?.name || 'Bài học';
+            reply = `🌟 Em đã ghi nhận câu hỏi về <strong>${sub}</strong> của em! Để làm tốt bài học này, em hãy bấm vào khối bài học tương ứng trên sơ đồ để xem video giảng dạy chi tiết và làm bài trắc nghiệm nhé! Chúc em học thật giỏi!`;
+        }
+
+        setTimeout(() => {
+            appendAiMessage(reply, false);
+            playClickSound();
+        }, 500);
+    }
+
+    function handleSendAi() {
+        const text = aiChatInput ? aiChatInput.value.trim() : '';
+        if (!text) return;
+        appendAiMessage(text, true);
+        if (aiChatInput) aiChatInput.value = '';
+        processAiResponse(text);
+    }
+
+    aiChatSendBtn?.addEventListener('click', handleSendAi);
+    aiChatInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSendAi();
+    });
+
+    document.querySelectorAll('.ai-sug-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const q = btn.dataset.q;
+            appendAiMessage(q, true);
+            processAiResponse(q);
+        });
+    });
+
+    // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
         await originalFinishQuiz();
         const percent = Math.round((quizScoreCorrect / currentQuizQuestions.length) * 100);
         if (percent >= 70) {
             launchConfetti();
+            playVictoryFanfare();
         }
     };
 });
+
 
 
