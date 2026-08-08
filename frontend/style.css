@@ -3276,6 +3276,111 @@ body.accessibility-xl-text .action-btn {
     cursor: pointer;
 }
 
+/* Lucky Student Spinner Wheel */
+.action-btn.btn-wheel {
+    background: #FEF3C7;
+    border-color: #FDE68A;
+    color: #D97706;
+}
+
+.action-btn.btn-wheel:hover {
+    background: #F59E0B;
+    color: #FFFFFF;
+}
+
+.wheel-stage-container {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto;
+    width: 320px;
+    height: 320px;
+}
+
+.wheel-pointer-arrow {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 32px;
+    z-index: 10;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    animation: pointerGlow 1s infinite alternate;
+}
+
+@keyframes pointerGlow {
+    0% { transform: translateX(-50%) translateY(0); }
+    100% { transform: translateX(-50%) translateY(4px); }
+}
+
+#wheelCanvas {
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 4px solid #FFFFFF;
+}
+
+.btn-spin-wheel {
+    background: linear-gradient(135deg, #F59E0B, #EA580C);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 30px;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(234, 88, 12, 0.4);
+    transition: all 0.2s;
+}
+
+.btn-spin-wheel:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(234, 88, 12, 0.6);
+}
+
+.btn-spin-wheel:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.wheel-winner-card {
+    margin-top: 20px;
+    background: linear-gradient(135deg, #FEF3C7, #EDE9FE);
+    border: 2px solid #F59E0B;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.winner-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #D97706;
+    letter-spacing: 1px;
+}
+
+.winner-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #7C3AED;
+    margin: 4px 0;
+}
+
+.winner-subtitle {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 600;
+}
+
+
 
 
 

@@ -4189,6 +4189,169 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- 25. Lucky Student Spinner Wheel ---
+    const openWheelBtn = document.getElementById('openWheelBtn');
+    const luckyWheelModal = document.getElementById('luckyWheelModal');
+    const wheelModalCloseBtn = document.getElementById('wheelModalCloseBtn');
+    const wheelModalDoneBtn = document.getElementById('wheelModalDoneBtn');
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const spinWheelBtn = document.getElementById('spinWheelBtn');
+    const wheelWinnerCard = document.getElementById('wheelWinnerCard');
+    const winnerStudentName = document.getElementById('winnerStudentName');
+    const wheelRosterTextarea = document.getElementById('wheelRosterTextarea');
+    const updateWheelRosterBtn = document.getElementById('updateWheelRosterBtn');
+    const wheelStudentCount = document.getElementById('wheelStudentCount');
+
+    let wheelStudents = [
+        'Đào Thùy Anh',
+        'Trần Minh Đức',
+        'Nguyễn Hoàng Nam',
+        'Lê Bảo Châu',
+        'Phạm Quang Huy',
+        'Vũ Khánh Linh',
+        'Đỗ Tuấn Kiệt',
+        'Bùi Mai Phương'
+    ];
+
+    const WHEEL_COLORS = [
+        '#EF4444', '#F97316', '#F59E0B', '#10B981',
+        '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899'
+    ];
+
+    let currentWheelAngle = 0;
+    let isWheelSpinning = false;
+
+    function drawWheel() {
+        if (!wheelCanvas) return;
+        const ctx = wheelCanvas.getContext('2d');
+        const width = wheelCanvas.width;
+        const height = wheelCanvas.height;
+        const center = width / 2;
+        const radius = center - 10;
+        const numSlices = wheelStudents.length;
+        const arc = (2 * Math.PI) / numSlices;
+
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < numSlices; i++) {
+            const angle = currentWheelAngle + i * arc;
+            ctx.beginPath();
+            ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+            ctx.moveTo(center, center);
+            ctx.arc(center, center, radius, angle, angle + arc);
+            ctx.lineTo(center, center);
+            ctx.fill();
+            ctx.stroke();
+
+            // Text Label
+            ctx.save();
+            ctx.translate(center, center);
+            ctx.rotate(angle + arc / 2);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(wheelStudents[i], radius - 20, 5);
+            ctx.restore();
+        }
+
+        // Center Pin Cap
+        ctx.beginPath();
+        ctx.arc(center, center, 26, 0, 2 * Math.PI);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#F59E0B';
+        ctx.stroke();
+
+        ctx.fillStyle = '#7C3AED';
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⭐', center, center + 6);
+    }
+
+    function spinLuckyWheel() {
+        if (isWheelSpinning || wheelStudents.length === 0) return;
+        isWheelSpinning = true;
+        if (spinWheelBtn) spinWheelBtn.disabled = true;
+        if (wheelWinnerCard) wheelWinnerCard.style.display = 'none';
+
+        const extraRounds = 5 + Math.floor(Math.random() * 4); // 5 to 8 full spins
+        const randomTargetAngle = Math.random() * 2 * Math.PI;
+        const totalSpinAngle = extraRounds * 2 * Math.PI + randomTargetAngle;
+        const duration = 4000;
+        const startTime = performance.now();
+        const startAngle = currentWheelAngle;
+
+        function animateWheel(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            currentWheelAngle = startAngle + totalSpinAngle * easeOut;
+            drawWheel();
+
+            if (Math.floor(elapsed) % 180 < 20) {
+                playClickSound();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animateWheel);
+            } else {
+                isWheelSpinning = false;
+                if (spinWheelBtn) spinWheelBtn.disabled = false;
+
+                // Determine winner slice at top pointer (angle = 3*PI/2)
+                const numSlices = wheelStudents.length;
+                const arc = (2 * Math.PI) / numSlices;
+                const normalizedAngle = (currentWheelAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+                const pointerAngle = (3 * Math.PI / 2 - normalizedAngle + 2 * Math.PI) % (2 * Math.PI);
+                const winningIndex = Math.floor(pointerAngle / arc) % numSlices;
+                const winner = wheelStudents[winningIndex];
+
+                if (winnerStudentName) winnerStudentName.textContent = winner;
+                if (wheelWinnerCard) wheelWinnerCard.style.display = 'block';
+
+                playVictoryFanfare();
+                launchConfetti();
+                showToast(`🎉 Chúc mừng em ${winner} được chọn phát biểu!`, 'fa-trophy', 'success');
+
+                if (isTtsEnabled) {
+                    speakText(`Chúc mừng em ${winner} đã được vòng quay may mắn gọi tên trả lời câu hỏi!`);
+                }
+            }
+        }
+
+        requestAnimationFrame(animateWheel);
+    }
+
+    openWheelBtn?.addEventListener('click', () => {
+        luckyWheelModal?.classList.add('active');
+        if (wheelRosterTextarea) wheelRosterTextarea.value = wheelStudents.join('\n');
+        if (wheelStudentCount) wheelStudentCount.textContent = wheelStudents.length;
+        drawWheel();
+        playClickSound();
+    });
+
+    spinWheelBtn?.addEventListener('click', spinLuckyWheel);
+    wheelModalCloseBtn?.addEventListener('click', () => luckyWheelModal?.classList.remove('active'));
+    wheelModalDoneBtn?.addEventListener('click', () => luckyWheelModal?.classList.remove('active'));
+
+    updateWheelRosterBtn?.addEventListener('click', () => {
+        const text = (wheelRosterTextarea?.value || '').trim();
+        const names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+        if (names.length < 2) {
+            showToast('Danh sách học sinh phải có tối thiểu 2 em!', 'fa-triangle-exclamation', 'error');
+            return;
+        }
+        wheelStudents = names;
+        if (wheelStudentCount) wheelStudentCount.textContent = wheelStudents.length;
+        drawWheel();
+        showToast(`Đã cập nhật ${wheelStudents.length} học sinh vào vòng quay!`, 'fa-circle-check', 'success');
+        playClickSound();
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -4203,6 +4366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 

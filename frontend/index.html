@@ -54,6 +54,12 @@
                 <i class="fa-solid fa-comments"></i>
                 <span>Bảng tin lớp</span>
             </button>
+
+            <!-- Lucky Student Spinner Wheel Button -->
+            <button class="action-btn btn-wheel" id="openWheelBtn" title="Vòng quay may mắn: Gọi ngẫu nhiên học sinh trả lời câu hỏi">
+                <i class="fa-solid fa-dharmachakra"></i>
+                <span>Vòng quay may mắn</span>
+            </button>
         </div>
 
         <div class="top-controls-right">
@@ -1330,6 +1336,57 @@
                     <i class="fa-solid fa-rotate"></i> Làm mới bảng tin
                 </button>
                 <button class="btn btn-primary" id="feedModalDoneBtn">Xong</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lucky Student Spinner Wheel Modal -->
+    <div class="modal-overlay" id="luckyWheelModal">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-dharmachakra"></i> Vòng Quay May Mắn - Gọi Học Sinh Phát Biểu</h3>
+                <button class="modal-close" id="wheelModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: center;">
+                <p style="font-size: 13.5px; color: #64748B; margin-bottom: 16px;">
+                    Tung vòng quay kỳ diệu để chọn ngẫu nhiên một bạn học sinh trong lớp 5A lên trả lời câu hỏi bài học:
+                </p>
+
+                <!-- Wheel Canvas Container with Pointer -->
+                <div class="wheel-stage-container">
+                    <div class="wheel-pointer-arrow">🔻</div>
+                    <canvas id="wheelCanvas" width="360" height="360"></canvas>
+                </div>
+
+                <!-- Spin Action Button -->
+                <div style="margin-top: 20px;">
+                    <button class="btn-spin-wheel" id="spinWheelBtn">
+                        <i class="fa-solid fa-play"></i> QUAY NGAY
+                    </button>
+                </div>
+
+                <!-- Winner Announcement Card -->
+                <div class="wheel-winner-card" id="wheelWinnerCard" style="display: none;">
+                    <div class="winner-title">🎉 CHÚC MỪNG EM:</div>
+                    <div class="winner-name" id="winnerStudentName">Đào Thùy Anh</div>
+                    <div class="winner-subtitle" id="winnerSubtitle">Lớp 5A • Mời em đứng dậy phát biểu bài học nhé! 🌟</div>
+                </div>
+
+                <!-- Student List Editor Collapsible -->
+                <details style="margin-top: 20px; text-align: left; background: #F8FAFC; border-radius: 10px; padding: 10px 14px; border: 1px solid #E2E8F0;">
+                    <summary style="font-size: 12.5px; font-weight: 700; color: #475569; cursor: pointer;">
+                        ⚙️ Chỉnh sửa danh sách học sinh tham gia quay (<span id="wheelStudentCount">8</span> học sinh)
+                    </summary>
+                    <div style="margin-top: 10px;">
+                        <textarea id="wheelRosterTextarea" rows="4" style="width: 100%; font-size: 12.5px; padding: 8px; border-radius: 8px; border: 1px solid #CBD5E1;" placeholder="Nhập mỗi học sinh trên 1 dòng..."></textarea>
+                        <button type="button" class="btn btn-secondary" id="updateWheelRosterBtn" style="margin-top: 6px; font-size: 12px; padding: 4px 12px;">
+                            <i class="fa-solid fa-check"></i> Cập nhật danh sách vòng quay
+                        </button>
+                    </div>
+                </details>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="wheelModalDoneBtn" style="width: 100%;">Đóng</button>
             </div>
         </div>
     </div>
