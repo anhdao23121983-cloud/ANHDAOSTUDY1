@@ -21,6 +21,12 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Supabase Cloud Sync Button -->
+            <button class="action-btn btn-supabase" id="supabaseConfigBtn" title="Cấu hình kết nối cơ sở dữ liệu Supabase Cloud">
+                <i class="fa-solid fa-cloud" id="supabaseStatusIcon"></i>
+                <span id="supabaseStatusText">Supabase: Cục bộ</span>
+            </button>
+
             <!-- Reset All Nodes Button -->
             <button class="action-btn btn-reset-all" id="resetAllNodesBtn" title="Xóa tất cả tùy chỉnh và đặt lại 8 khối về sơ đồ gốc">
                 <i class="fa-solid fa-rotate"></i>
@@ -178,6 +184,42 @@
         </div>
     </div>
 
+    <!-- Supabase Configuration Modal -->
+    <div class="modal-overlay" id="supabaseModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cloud"></i> Cấu hình kết nối Supabase Cloud</h3>
+                <button class="modal-close" id="supabaseModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Nhập thông tin kết nối Supabase của thầy (cô) để tự động lưu trữ và đồng bộ hóa sơ đồ lên đám mây:</p>
+                <div class="form-group">
+                    <label for="supabaseUrlInput">Project URL:</label>
+                    <input type="text" id="supabaseUrlInput" placeholder="vd: https://abcdefghijklm.supabase.co">
+                </div>
+                <div class="form-group">
+                    <label for="supabaseKeyInput">Anon / Public API Key:</label>
+                    <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                <div class="supabase-status-box" id="supabaseStatusBox">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="supabaseStatusDetail">Chưa cấu hình kết nối Supabase (đang dùng bộ nhớ cục bộ).</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-danger" id="supabaseDisconnectBtn">
+                    <i class="fa-solid fa-link-slash"></i> Xóa kết nối
+                </button>
+                <div class="modal-footer-right">
+                    <button class="btn btn-secondary" id="supabaseCancelBtn">Đóng</button>
+                    <button class="btn btn-primary" id="supabaseSaveConnectBtn">
+                        <i class="fa-solid fa-bolt"></i> Lưu & Kết nối
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -190,6 +232,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseConfig.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
     <script src="script.js"></script>
 </body>

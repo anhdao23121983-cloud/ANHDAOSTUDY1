@@ -455,6 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
 
+        // Sync to Supabase Cloud
+        syncNodeToSupabase(currentNode.id, savedData[currentNode.id]);
+
         // Reposition LeaderLines
         lines.forEach(line => line.position());
 
@@ -498,6 +501,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
             delete savedData[currentNode.id];
             localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
+
+            // Sync reset to Supabase Cloud
+            syncNodeToSupabase(currentNode.id, {
+                title: defaults.title,
+                desc: defaults.desc,
+                url: '',
+                icon: 'monitor',
+                color: '#7C3AED'
+            });
 
             // Reposition LeaderLines
             lines.forEach(line => line.position());
@@ -622,6 +634,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete node.dataset.url;
                 const badge = node.querySelector('.node-link-badge');
                 if (badge) badge.remove();
+
+                // Sync all resets to Supabase Cloud
+                if (defaults) {
+                    syncNodeToSupabase(node.id, {
+                        title: defaults.title,
+                        desc: defaults.desc,
+                        url: '',
+                        icon: 'monitor',
+                        color: '#7C3AED'
+                    });
+                }
             });
 
             lines.forEach(line => line.position());
@@ -632,4 +655,153 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     resetAllNodesBtn?.addEventListener('click', resetAllNodes);
+
+    // --- Supabase Cloud Database Integration ---
+    let supabaseClient = null;
+    const supabaseConfigBtn = document.getElementById('supabaseConfigBtn');
+    const supabaseModal = document.getElementById('supabaseModal');
+    const supabaseModalCloseBtn = document.getElementById('supabaseModalCloseBtn');
+    const supabaseCancelBtn = document.getElementById('supabaseCancelBtn');
+    const supabaseSaveConnectBtn = document.getElementById('supabaseSaveConnectBtn');
+    const supabaseDisconnectBtn = document.getElementById('supabaseDisconnectBtn');
+    const supabaseUrlInput = document.getElementById('supabaseUrlInput');
+    const supabaseKeyInput = document.getElementById('supabaseKeyInput');
+    const supabaseStatusText = document.getElementById('supabaseStatusText');
+    const supabaseStatusIcon = document.getElementById('supabaseStatusIcon');
+    const statusDot = document.getElementById('statusDot');
+    const supabaseStatusDetail = document.getElementById('supabaseStatusDetail');
+
+    function updateSupabaseUI(isConnected, detailMsg = '') {
+        if (isConnected) {
+            supabaseConfigBtn?.classList.add('connected');
+            if (supabaseStatusText) supabaseStatusText.textContent = 'Supabase: Đã kết nối';
+            if (supabaseStatusIcon) supabaseStatusIcon.className = 'fa-solid fa-cloud-check';
+            if (statusDot) statusDot.classList.add('connected');
+            if (supabaseStatusDetail) supabaseStatusDetail.textContent = detailMsg || 'Đã kết nối thành công tới Supabase Database! Dữ liệu đang được đồng bộ đám mây.';
+        } else {
+            supabaseConfigBtn?.classList.remove('connected');
+            if (supabaseStatusText) supabaseStatusText.textContent = 'Supabase: Cục bộ';
+            if (supabaseStatusIcon) supabaseStatusIcon.className = 'fa-solid fa-cloud';
+            if (statusDot) statusDot.classList.remove('connected');
+            if (supabaseStatusDetail) supabaseStatusDetail.textContent = detailMsg || 'Chưa cấu hình kết nối Supabase (đang dùng bộ nhớ cục bộ).';
+        }
+    }
+
+    async function initSupabase(isManual = false) {
+        const savedUrl = localStorage.getItem('supabase_url') || (window.SUPABASE_DEFAULT_CONFIG?.url !== 'https://YOUR_PROJECT_ID.supabase.co' ? window.SUPABASE_DEFAULT_CONFIG?.url : '');
+        const savedKey = localStorage.getItem('supabase_key') || (window.SUPABASE_DEFAULT_CONFIG?.anonKey !== 'YOUR_SUPABASE_ANON_PUBLIC_KEY' ? window.SUPABASE_DEFAULT_CONFIG?.anonKey : '');
+
+        if (supabaseUrlInput) supabaseUrlInput.value = savedUrl || '';
+        if (supabaseKeyInput) supabaseKeyInput.value = savedKey || '';
+
+        if (!savedUrl || !savedKey || !window.supabase) {
+            updateSupabaseUI(false);
+            return;
+        }
+
+        try {
+            supabaseClient = window.supabase.createClient(savedUrl, savedKey);
+            // Test query on nodes table
+            const { data, error } = await supabaseClient.from('nodes').select('*').limit(8);
+            if (error) throw error;
+
+            updateSupabaseUI(true, `Kết nối Cloud OK! Tìm thấy ${data.length} khối dữ liệu trên Supabase.`);
+            if (isManual) {
+                showToast('Kết nối thành công tới Supabase Cloud!', 'fa-cloud-check', 'success');
+            }
+
+            // If data exists on Supabase, apply to DOM
+            if (data && data.length > 0) {
+                const cloudNodes = {};
+                data.forEach(item => {
+                    cloudNodes[item.id] = {
+                        title: item.title,
+                        desc: item.description,
+                        url: item.url,
+                        icon: item.icon,
+                        color: item.accent_color
+                    };
+                    const nodeEl = document.getElementById(item.id);
+                    if (nodeEl) {
+                        const titleEl = nodeEl.querySelector('.node-title');
+                        const descEl = nodeEl.querySelector('.node-desc');
+                        if (titleEl && item.title) titleEl.textContent = item.title;
+                        if (descEl && item.description) descEl.textContent = item.description;
+                        applyNodeCustomStyles(nodeEl, item.icon, item.accent_color, item.url);
+                    }
+                });
+                localStorage.setItem('flowchart_nodes_data', JSON.stringify(cloudNodes));
+                lines.forEach(line => line.position());
+            }
+        } catch (err) {
+            console.warn('Lỗi kết nối Supabase:', err);
+            updateSupabaseUI(false, `Lỗi kết nối: ${err.message || 'Không thể truy cập bảng nodes'}`);
+            if (isManual) {
+                showToast('Không thể kết nối Supabase. Vui lòng kiểm tra lại URL & Key!', 'fa-triangle-exclamation', 'error');
+            }
+        }
+    }
+
+    async function syncNodeToSupabase(nodeId, nodeData) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient.from('nodes').upsert({
+                id: nodeId,
+                title: nodeData.title || '',
+                description: nodeData.desc || '',
+                url: nodeData.url || '',
+                icon: nodeData.icon || 'monitor',
+                accent_color: nodeData.color || '#7C3AED',
+                updated_at: new Date().toISOString()
+            });
+            if (error) throw error;
+            showToast('Đã đồng bộ khối lên Supabase Cloud!', 'fa-cloud-arrow-up', 'success');
+        } catch (err) {
+            console.error('Lỗi đồng bộ Supabase:', err);
+            showToast('Lỗi đồng bộ lên Supabase: ' + (err.message || ''), 'fa-triangle-exclamation', 'error');
+        }
+    }
+
+    supabaseConfigBtn?.addEventListener('click', () => {
+        supabaseModal?.classList.add('active');
+    });
+
+    supabaseModalCloseBtn?.addEventListener('click', () => {
+        supabaseModal?.classList.remove('active');
+    });
+
+    supabaseCancelBtn?.addEventListener('click', () => {
+        supabaseModal?.classList.remove('active');
+    });
+
+    supabaseSaveConnectBtn?.addEventListener('click', async () => {
+        const url = supabaseUrlInput.value.trim();
+        const key = supabaseKeyInput.value.trim();
+
+        if (!url || !key) {
+            alert('Vui lòng nhập đầy đủ Supabase Project URL và Public Anon Key!');
+            return;
+        }
+
+        localStorage.setItem('supabase_url', url);
+        localStorage.setItem('supabase_key', key);
+        await initSupabase(true);
+        supabaseModal?.classList.remove('active');
+    });
+
+    supabaseDisconnectBtn?.addEventListener('click', () => {
+        if (confirm('Thầy (cô) có chắc chắn muốn ngắt kết nối với Supabase Cloud không?')) {
+            localStorage.removeItem('supabase_url');
+            localStorage.removeItem('supabase_key');
+            supabaseClient = null;
+            if (supabaseUrlInput) supabaseUrlInput.value = '';
+            if (supabaseKeyInput) supabaseKeyInput.value = '';
+            updateSupabaseUI(false);
+            supabaseModal?.classList.remove('active');
+            showToast('Đã ngắt kết nối với Supabase', 'fa-link-slash', 'info');
+        }
+    });
+
+    // Auto-init Supabase on load
+    initSupabase();
 });
