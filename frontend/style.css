@@ -64,13 +64,13 @@ body {
     background: #FFFFFF;
     border: 2px solid #7C3AED; /* Primary purple border */
     border-radius: 12px;
-    /* Adding a subtle secondary border effect on left to match image */
     box-shadow: -4px 0px 0px 0px #7C3AED, 0 4px 10px rgba(0,0,0,0.03); 
     padding: 16px;
     position: relative;
     z-index: 10;
-    cursor: text; /* "Nhấp đúp chuột để chỉnh sửa" implies text editing */
-    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s ease-out, box-shadow 0.2s;
 
     /* Entrance Animation */
     opacity: 0;
@@ -79,7 +79,15 @@ body {
 
 .node:hover {
     transform: translateY(-2px);
-    box-shadow: -4px 0px 0px 0px #7C3AED, 0 8px 16px rgba(124, 58, 237, 0.1);
+    box-shadow: -4px 0px 0px 0px #7C3AED, 0 8px 16px rgba(124, 58, 237, 0.15);
+}
+
+.node.is-dragging {
+    cursor: grabbing !important;
+    z-index: 999 !important;
+    transition: none !important;
+    box-shadow: -4px 0px 0px 0px #7C3AED, 0 16px 32px rgba(124, 58, 237, 0.35) !important;
+    opacity: 0.95;
 }
 
 /* Staggered entry animation delays */

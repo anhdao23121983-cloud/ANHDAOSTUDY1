@@ -241,39 +241,122 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    // Single click / double click handler
-    document.querySelectorAll('.node').forEach(node => {
-        let clickTimer = null;
+    // --- Drag & Drop Node Movement & Interactive Positioning ---
+    function initDraggableNodes() {
+        document.querySelectorAll('.node').forEach(node => {
+            let isDragging = false;
+            let startMouseX = 0;
+            let startMouseY = 0;
+            let startNodeX = 0;
+            let startNodeY = 0;
+            let hasMoved = false;
+            let clickTimer = null;
 
-        node.addEventListener('mouseenter', playHoverSound);
+            node.addEventListener('mouseenter', playHoverSound);
 
-        node.addEventListener('click', (e) => {
-            playClickSound();
-            if (clickTimer) clearTimeout(clickTimer);
+            function onPointerDown(e) {
+                if (e.target.closest('button') || e.target.closest('input')) return;
+                
+                isDragging = true;
+                hasMoved = false;
+                startMouseX = e.clientX;
+                startMouseY = e.clientY;
+                startNodeX = parseFloat(node.dataset.x || 0);
+                startNodeY = parseFloat(node.dataset.y || 0);
 
-            clickTimer = setTimeout(() => {
-                const targetUrl = node.dataset.url;
-                if (targetUrl) {
-                    showToast('Đang chuyển hướng tới bài học...', 'fa-arrow-up-right-from-square', 'info');
-                    let fullUrl = targetUrl;
-                    if (!/^https?:\/\//i.test(fullUrl)) {
-                        fullUrl = 'https://' + fullUrl;
-                    }
-                    window.open(fullUrl, '_blank');
-                }
-                clickTimer = null;
-            }, 250);
-        });
-
-        node.addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
+                node.classList.add('is-dragging');
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+                document.addEventListener('pointercancel', onPointerUp);
             }
-            openEditModal(node);
+
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startMouseX;
+                const dy = e.clientY - startMouseY;
+
+                if (!hasMoved && Math.hypot(dx, dy) > 4) {
+                    hasMoved = true;
+                    if (clickTimer) {
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                    }
+                }
+
+                if (hasMoved) {
+                    const newX = startNodeX + dx;
+                    const newY = startNodeY + dy;
+                    node.style.transform = `translate(${newX}px, ${newY}px)`;
+                    node.dataset.x = newX;
+                    node.dataset.y = newY;
+                    lines.forEach(line => line.position());
+                }
+            }
+
+            function onPointerUp(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                node.classList.remove('is-dragging');
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                document.removeEventListener('pointercancel', onPointerUp);
+
+                if (hasMoved) {
+                    const posX = parseFloat(node.dataset.x || 0);
+                    const posY = parseFloat(node.dataset.y || 0);
+
+                    // Save coordinates to localStorage
+                    const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
+                    savedData[node.id] = {
+                        ...(savedData[node.id] || {}),
+                        pos_x: posX,
+                        pos_y: posY
+                    };
+                    localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
+
+                    // Save to Supabase Cloud
+                    syncNodeCoordinates(node.id, posX, posY);
+
+                    lines.forEach(line => line.position());
+                    showToast('Đã lưu vị trí khối trên sơ đồ!', 'fa-arrows-up-down-left-right', 'info');
+                    playClickSound();
+                }
+            }
+
+            node.addEventListener('pointerdown', onPointerDown);
+
+            // Single click for link navigation
+            node.addEventListener('click', (e) => {
+                if (hasMoved) return;
+                playClickSound();
+                if (clickTimer) clearTimeout(clickTimer);
+
+                clickTimer = setTimeout(() => {
+                    const targetUrl = node.dataset.url;
+                    if (targetUrl) {
+                        showToast('Đang chuyển hướng tới bài học...', 'fa-arrow-up-right-from-square', 'info');
+                        let fullUrl = targetUrl;
+                        if (!/^https?:\/\//i.test(fullUrl)) {
+                            fullUrl = 'https://' + fullUrl;
+                        }
+                        window.open(fullUrl, '_blank');
+                    }
+                    clickTimer = null;
+                }, 250);
+            });
+
+            // Double click to open Edit Modal
+            node.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                }
+                openEditModal(node);
+            });
         });
-    });
+    }
+    initDraggableNodes();
 
     // Store original default HTML node data
     const defaultNodesData = {};
@@ -389,6 +472,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data.icon || data.color || data.url) {
                             applyNodeCustomStyles(nodeEl, data.icon, data.color, data.url);
                         }
+                        if (data.pos_x !== undefined && data.pos_y !== undefined && (data.pos_x !== 0 || data.pos_y !== 0)) {
+                            nodeEl.style.transform = `translate(${data.pos_x}px, ${data.pos_y}px)`;
+                            nodeEl.dataset.x = data.pos_x;
+                            nodeEl.dataset.y = data.pos_y;
+                        }
                     }
                 });
             } catch (e) {}
@@ -446,12 +534,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Save to localStorage
         const savedData = JSON.parse(localStorage.getItem('flowchart_nodes_data') || '{}');
+        const posX = parseFloat(currentNode.dataset.x || 0);
+        const posY = parseFloat(currentNode.dataset.y || 0);
+
         savedData[currentNode.id] = {
             title: newTitle,
             desc: newDesc,
             url: newUrl,
             icon: selectedIcon,
-            color: selectedColor
+            color: selectedColor,
+            pos_x: posX,
+            pos_y: posY
         };
         localStorage.setItem('flowchart_nodes_data', JSON.stringify(savedData));
 
@@ -477,9 +570,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (titleEl) titleEl.textContent = defaults.title;
             if (descEl) descEl.textContent = defaults.desc;
 
-            // Reset inline styles
+            // Reset inline styles & transform
             currentNode.style.borderColor = '#7C3AED';
             currentNode.style.boxShadow = `-4px 0px 0px 0px #7C3AED, 0 4px 10px rgba(0,0,0,0.03)`;
+            currentNode.style.transform = '';
+            delete currentNode.dataset.x;
+            delete currentNode.dataset.y;
 
             // Reset icon to default computer image
             const iconContainer = currentNode.querySelector('.node-inner');
@@ -508,7 +604,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 desc: defaults.desc,
                 url: '',
                 icon: 'monitor',
-                color: '#7C3AED'
+                color: '#7C3AED',
+                pos_x: 0,
+                pos_y: 0
             });
 
             // Reposition LeaderLines
@@ -620,6 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 node.style.borderColor = '#7C3AED';
                 node.style.boxShadow = `-4px 0px 0px 0px #7C3AED, 0 4px 10px rgba(0,0,0,0.03)`;
+                node.style.transform = '';
+                delete node.dataset.x;
+                delete node.dataset.y;
 
                 const iconContainer = node.querySelector('.node-inner');
                 let iconEl = node.querySelector('.node-icon');
@@ -642,7 +743,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         desc: defaults.desc,
                         url: '',
                         icon: 'monitor',
-                        color: '#7C3AED'
+                        color: '#7C3AED',
+                        pos_x: 0,
+                        pos_y: 0
                     });
                 }
             });
@@ -719,7 +822,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         desc: item.description,
                         url: item.url,
                         icon: item.icon,
-                        color: item.accent_color
+                        color: item.accent_color,
+                        pos_x: item.pos_x || 0,
+                        pos_y: item.pos_y || 0
                     };
                     const nodeEl = document.getElementById(item.id);
                     if (nodeEl) {
@@ -728,6 +833,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (titleEl && item.title) titleEl.textContent = item.title;
                         if (descEl && item.description) descEl.textContent = item.description;
                         applyNodeCustomStyles(nodeEl, item.icon, item.accent_color, item.url);
+                        if (item.pos_x || item.pos_y) {
+                            nodeEl.style.transform = `translate(${item.pos_x}px, ${item.pos_y}px)`;
+                            nodeEl.dataset.x = item.pos_x;
+                            nodeEl.dataset.y = item.pos_y;
+                        }
                     }
                 });
                 localStorage.setItem('flowchart_nodes_data', JSON.stringify(cloudNodes));
@@ -752,6 +862,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 url: nodeData.url || '',
                 icon: nodeData.icon || 'monitor',
                 accent_color: nodeData.color || '#7C3AED',
+                pos_x: Math.round(nodeData.pos_x || 0),
+                pos_y: Math.round(nodeData.pos_y || 0),
                 updated_at: new Date().toISOString()
             });
             if (error) throw error;
@@ -759,6 +871,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Lỗi đồng bộ Supabase:', err);
             showToast('Lỗi đồng bộ lên Supabase: ' + (err.message || ''), 'fa-triangle-exclamation', 'error');
+        }
+    }
+
+    async function syncNodeCoordinates(nodeId, posX, posY) {
+        if (!supabaseClient) return;
+        try {
+            await supabaseClient.from('nodes').upsert({
+                id: nodeId,
+                pos_x: Math.round(posX),
+                pos_y: Math.round(posY),
+                updated_at: new Date().toISOString()
+            });
+        } catch (err) {
+            console.warn('Lỗi lưu tọa độ Supabase:', err);
         }
     }
 
