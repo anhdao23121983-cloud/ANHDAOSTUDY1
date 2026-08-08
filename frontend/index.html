@@ -37,6 +37,12 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Lo-Fi Relaxing Study Music Toggle -->
+            <button class="action-btn btn-bgm" id="bgmToggleBtn" title="Bật/Tắt nhạc nền học tập thư giãn Lo-Fi">
+                <i class="fa-solid fa-music" id="bgmIcon"></i>
+                <span id="bgmText">Nhạc Lo-Fi</span>
+            </button>
+
             <!-- Theme Mode Toggle (Dark/Light) -->
             <button class="theme-toggle-btn" id="themeToggle" title="Chuyển đổi Chế độ Sáng / Tối">
                 <i class="fa-solid fa-moon" id="themeIcon"></i>
@@ -272,6 +278,7 @@
                     <button type="button" class="tab-btn active" id="tabCurrentStudent"><i class="fa-solid fa-user-pen"></i> Học sinh hiện tại</button>
                     <button type="button" class="tab-btn" id="tabClassList"><i class="fa-solid fa-users"></i> Tiến độ cả lớp</button>
                     <button type="button" class="tab-btn" id="tabQuizLeaderboard"><i class="fa-solid fa-trophy"></i> Bảng điểm Quiz (Supabase)</button>
+                    <button type="button" class="tab-btn" id="tabStatsAnalytics"><i class="fa-solid fa-chart-pie"></i> Thống kê Biểu đồ Lớp</button>
                 </div>
 
                 <!-- Tab 1: Current Student Details -->
@@ -368,17 +375,104 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Tab 4: Class Analytics & Charts -->
+                <div class="tab-content" id="tabContentStats" style="display: none;">
+                    <div class="analytics-cards-grid">
+                        <div class="analytics-stat-card">
+                            <div class="a-stat-icon" style="background:#EFF6FF; color:#2563EB;"><i class="fa-solid fa-user-graduate"></i></div>
+                            <div>
+                                <div class="a-stat-val" id="totalStudentsCount">1 Học sinh</div>
+                                <div class="a-stat-lbl">Tổng số học sinh</div>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-card">
+                            <div class="a-stat-icon" style="background:#ECFDF5; color:#059669;"><i class="fa-solid fa-trophy"></i></div>
+                            <div>
+                                <div class="a-stat-val" id="avgQuizScore">100%</div>
+                                <div class="a-stat-lbl">Tỷ lệ đỗ trung bình</div>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-card">
+                            <div class="a-stat-icon" style="background:#FEF3C7; color:#D97706;"><i class="fa-solid fa-book-open-reader"></i></div>
+                            <div>
+                                <div class="a-stat-val" id="totalCompletedLessons">8 Bài</div>
+                                <div class="a-stat-lbl">Bài học đã hoàn thành</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-box-card">
+                        <h4 style="margin:0 0 12px 0; font-size:14px; color:#1E293B;"><i class="fa-solid fa-chart-column"></i> Phân loại Học lực & Điểm số cả lớp:</h4>
+                        <div class="bar-chart-container">
+                            <div class="chart-bar-group">
+                                <div class="chart-bar-track"><div class="chart-bar-fill" id="barExcellent" style="height: 80%; background: #10B981;"></div></div>
+                                <span class="chart-bar-lbl">Xuất sắc (80-100%)</span>
+                            </div>
+                            <div class="chart-bar-group">
+                                <div class="chart-bar-track"><div class="chart-bar-fill" id="barGood" style="height: 50%; background: #3B82F6;"></div></div>
+                                <span class="chart-bar-lbl">Khá (65-79%)</span>
+                            </div>
+                            <div class="chart-bar-group">
+                                <div class="chart-bar-track"><div class="chart-bar-fill" id="barAverage" style="height: 30%; background: #F59E0B;"></div></div>
+                                <span class="chart-bar-lbl">Trung bình (50-64%)</span>
+                            </div>
+                            <div class="chart-bar-group">
+                                <div class="chart-bar-track"><div class="chart-bar-fill" id="barNeedHelp" style="height: 10%; background: #EF4444;"></div></div>
+                                <span class="chart-bar-lbl">Cần cố gắng (<50%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline-danger" id="studentResetProgressBtn" title="Đặt lại tiến độ của học sinh này về 0">
-                    <i class="fa-solid fa-rotate-left"></i> Đặt lại tiến độ
-                </button>
+                <div class="modal-footer-left">
+                    <button type="button" class="btn btn-outline-primary" id="printReportBtn" title="In trực tiếp phiếu báo cáo học sinh ra giấy hoặc PDF">
+                        <i class="fa-solid fa-print"></i> In phiếu báo cáo
+                    </button>
+                    <button class="btn btn-outline-danger" id="studentResetProgressBtn" title="Đặt lại tiến độ của học sinh này về 0">
+                        <i class="fa-solid fa-rotate-left"></i> Đặt lại
+                    </button>
+                </div>
                 <div class="modal-footer-right">
                     <button class="btn btn-secondary" id="studentModalCancelBtn">Đóng</button>
                     <button class="btn btn-primary" id="studentSaveBtn">
                         <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật Supabase
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini-game: Interactive Typing & Keyboard Trainer Modal -->
+    <div class="modal-overlay" id="typingGameModal">
+        <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-keyboard"></i> Trò chơi Luyện gõ 10 ngón & Ghép từ siêu tốc</h3>
+                <button class="modal-close" id="typingModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 20px;">
+                <div class="typing-stats-bar">
+                    <div class="t-stat"><strong>Tốc độ (WPM):</strong> <span id="wpmCounter" style="color:#2563EB; font-weight:700;">0 WPM</span></div>
+                    <div class="t-stat"><strong>Độ chính xác:</strong> <span id="accuracyCounter" style="color:#10B981; font-weight:700;">100%</span></div>
+                    <div class="t-stat"><strong>Điểm số:</strong> <span id="gameScoreCounter" style="color:#D97706; font-weight:700;">0 Điểm</span></div>
+                </div>
+
+                <div class="target-word-display" id="targetWordDisplay">
+                    MÁY TÍNH
+                </div>
+
+                <div class="form-group" style="max-width: 480px; margin: 0 auto 16px auto;">
+                    <input type="text" id="typingInput" placeholder="Gõ từ hiển thị ở trên rồi nhấn Space hoặc Enter..." style="text-align:center; font-size:18px; font-weight:600; padding:12px 16px;">
+                </div>
+
+                <p style="font-size:12.5px; color:#64748B; margin:0;">
+                    💡 Luyện gõ đúng ngón tay theo hàng phím cơ sở để đạt tốc độ gõ phím nhanh nhất nhé!
+                </p>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-secondary" id="typingModalQuitBtn">Thoát trò chơi</button>
+                <button class="btn btn-primary" id="typingRestartBtn"><i class="fa-solid fa-rotate-left"></i> Chơi lại từ đầu</button>
             </div>
         </div>
     </div>

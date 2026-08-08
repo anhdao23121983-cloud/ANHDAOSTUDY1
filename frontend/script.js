@@ -2473,6 +2473,197 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- 6. Lo-Fi Relaxing Study Music Synthesizer ---
+    const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+    const bgmIcon = document.getElementById('bgmIcon');
+    const bgmText = document.getElementById('bgmText');
+    let isBgmPlaying = false;
+    let bgmInterval = null;
+
+    function playLofiChord() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const chords = [
+                [261.63, 329.63, 392.00, 493.88], // Cmaj7
+                [220.00, 261.63, 329.63, 392.00], // Am7
+                [174.61, 220.00, 261.63, 329.63], // Fmaj7
+                [196.00, 246.94, 293.66, 349.23]  // G7
+            ];
+            const chord = chords[Math.floor(Math.random() * chords.length)];
+
+            chord.forEach(freq => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(600, ctx.currentTime);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.001, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.8);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.5);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 3.8);
+            });
+        } catch (e) {}
+    }
+
+    bgmToggleBtn?.addEventListener('click', () => {
+        isBgmPlaying = !isBgmPlaying;
+        if (isBgmPlaying) {
+            bgmToggleBtn.classList.add('playing');
+            if (bgmIcon) bgmIcon.className = 'fa-solid fa-compact-disc fa-spin';
+            if (bgmText) bgmText.textContent = 'Lo-Fi: Đang phát';
+            playLofiChord();
+            bgmInterval = setInterval(playLofiChord, 3800);
+            showToast('Đang phát nhạc Lo-Fi thư giãn học tập nhẹ nhàng...', 'fa-music', 'success');
+        } else {
+            bgmToggleBtn.classList.remove('playing');
+            if (bgmIcon) bgmIcon.className = 'fa-solid fa-music';
+            if (bgmText) bgmText.textContent = 'Nhạc Lo-Fi';
+            if (bgmInterval) clearInterval(bgmInterval);
+            showToast('Đã dừng nhạc nền Lo-Fi.', 'fa-pause', 'info');
+        }
+        playClickSound();
+    });
+
+    // --- 7. Print Report Card View ---
+    const printReportBtn = document.getElementById('printReportBtn');
+    printReportBtn?.addEventListener('click', () => {
+        showToast('Đang chuẩn bị trang in phiếu báo cáo học sinh...', 'fa-print', 'info');
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    });
+
+    // --- 8. Mini-game: Interactive Typing & Keyboard Trainer ---
+    const typingGameModal = document.getElementById('typingGameModal');
+    const typingModalCloseBtn = document.getElementById('typingModalCloseBtn');
+    const typingModalQuitBtn = document.getElementById('typingModalQuitBtn');
+    const typingRestartBtn = document.getElementById('typingRestartBtn');
+    const targetWordDisplay = document.getElementById('targetWordDisplay');
+    const typingInput = document.getElementById('typingInput');
+    const wpmCounter = document.getElementById('wpmCounter');
+    const accuracyCounter = document.getElementById('accuracyCounter');
+    const gameScoreCounter = document.getElementById('gameScoreCounter');
+
+    const TYPING_WORDS = [
+        'MÁY TÍNH', 'BÀN PHÍM', 'MÀN HÌNH', 'CHUỘT QUANG', 'LẬP TRÌNH',
+        'INTERNET', 'TIN HỌC', 'THÔNG MINH', 'BÀI HỌC', 'SƠ ĐỒ TƯ DUY'
+    ];
+    let currentWordIndex = 0;
+    let typingCorrectCount = 0;
+    let typingTotalCount = 0;
+    let typingStartTime = null;
+
+    function startTypingGame() {
+        currentWordIndex = 0;
+        typingCorrectCount = 0;
+        typingTotalCount = 0;
+        typingStartTime = Date.now();
+        if (targetWordDisplay) targetWordDisplay.textContent = TYPING_WORDS[0];
+        if (typingInput) {
+            typingInput.value = '';
+            typingInput.focus();
+        }
+        if (wpmCounter) wpmCounter.textContent = '0 WPM';
+        if (accuracyCounter) accuracyCounter.textContent = '100%';
+        if (gameScoreCounter) gameScoreCounter.textContent = '0 Điểm';
+        typingGameModal?.classList.add('active');
+        playClickSound();
+    }
+
+    typingModalCloseBtn?.addEventListener('click', () => typingGameModal?.classList.remove('active'));
+    typingModalQuitBtn?.addEventListener('click', () => typingGameModal?.classList.remove('active'));
+    typingRestartBtn?.addEventListener('click', startTypingGame);
+
+    typingInput?.addEventListener('input', () => {
+        const val = typingInput.value.trim().toUpperCase();
+        const target = TYPING_WORDS[currentWordIndex];
+
+        if (val === target) {
+            typingCorrectCount++;
+            typingTotalCount++;
+            playClickSound();
+
+            const elapsedMinutes = (Date.now() - typingStartTime) / 60000;
+            const wpm = Math.round(typingCorrectCount / Math.max(elapsedMinutes, 0.1));
+            if (wpmCounter) wpmCounter.textContent = `${wpm} WPM`;
+            if (gameScoreCounter) gameScoreCounter.textContent = `${typingCorrectCount * 10} Điểm`;
+
+            currentWordIndex = (currentWordIndex + 1) % TYPING_WORDS.length;
+            if (targetWordDisplay) targetWordDisplay.textContent = TYPING_WORDS[currentWordIndex];
+            typingInput.value = '';
+
+            if (currentWordIndex === 0) {
+                launchConfetti();
+                playVictoryFanfare();
+                showToast('Tuyệt vời! Em đã hoàn thành toàn bộ bài luyện gõ phím!', 'fa-trophy', 'success');
+            }
+        }
+    });
+
+    // When clicking node-4 (Trò chơi môn tin học), open typing game directly!
+    const node4 = document.getElementById('node-4');
+    node4?.addEventListener('click', (e) => {
+        e.preventDefault();
+        startTypingGame();
+    });
+
+    // --- 9. Tab 4: Class Analytics & Charts ---
+    const tabStatsAnalytics = document.getElementById('tabStatsAnalytics');
+    const tabContentStats = document.getElementById('tabContentStats');
+    const totalStudentsCount = document.getElementById('totalStudentsCount');
+    const avgQuizScore = document.getElementById('avgQuizScore');
+    const totalCompletedLessons = document.getElementById('totalCompletedLessons');
+    const barExcellent = document.getElementById('barExcellent');
+    const barGood = document.getElementById('barGood');
+    const barAverage = document.getElementById('barAverage');
+    const barNeedHelp = document.getElementById('barNeedHelp');
+
+    tabStatsAnalytics?.addEventListener('click', async () => {
+        switchTab(tabStatsAnalytics, tabContentStats);
+
+        let quizData = [];
+        if (supabaseClient) {
+            try {
+                const { data } = await supabaseClient.from('student_quiz_results').select('*');
+                if (data && data.length > 0) quizData = data;
+            } catch (e) {}
+        }
+
+        let ex = 1, gd = 1, avg = 1, need = 0;
+        let totalScore = 100;
+
+        if (quizData.length > 0) {
+            ex = quizData.filter(r => r.percentage >= 80).length;
+            gd = quizData.filter(r => r.percentage >= 65 && r.percentage < 80).length;
+            avg = quizData.filter(r => r.percentage >= 50 && r.percentage < 65).length;
+            need = quizData.filter(r => r.percentage < 50).length;
+            totalScore = Math.round(quizData.reduce((s, r) => s + (r.percentage || 0), 0) / quizData.length);
+        }
+
+        if (totalStudentsCount) totalStudentsCount.textContent = `${Math.max(quizData.length, 1)} Học sinh`;
+        if (avgQuizScore) avgQuizScore.textContent = `${totalScore}%`;
+        if (totalCompletedLessons) totalCompletedLessons.textContent = `${completedLessons.length} / 8 Bài`;
+
+        const maxVal = Math.max(ex, gd, avg, need, 1);
+        if (barExcellent) barExcellent.style.height = `${(ex / maxVal) * 90 + 10}%`;
+        if (barGood) barGood.style.height = `${(gd / maxVal) * 90 + 10}%`;
+        if (barAverage) barAverage.style.height = `${(avg / maxVal) * 90 + 10}%`;
+        if (barNeedHelp) barNeedHelp.style.height = `${(need / maxVal) * 90 + 10}%`;
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -2484,6 +2675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 
