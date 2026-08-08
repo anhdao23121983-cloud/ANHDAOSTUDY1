@@ -3970,6 +3970,139 @@ document.addEventListener('DOMContentLoaded', () => {
         playClickSound();
     });
 
+    // --- 24. Live Classroom Broadcast & Realtime Screen Synchronization ---
+    const liveBroadcastBtn = document.getElementById('liveBroadcastBtn');
+    const broadcastIcon = document.getElementById('broadcastIcon');
+    const broadcastText = document.getElementById('broadcastText');
+    const studentLiveBanner = document.getElementById('studentLiveBanner');
+    const liveBannerTeacherName = document.getElementById('liveBannerTeacherName');
+    const followTeacherCheckbox = document.getElementById('followTeacherCheckbox');
+    const teacherLaserPointer = document.getElementById('teacherLaserPointer');
+    const laserLabelText = document.getElementById('laserLabelText');
+
+    let isBroadcasting = false;
+    let localBroadcastChannel = null;
+    let realtimeLiveChannel = null;
+
+    try {
+        localBroadcastChannel = new BroadcastChannel('anhdao_classroom_live_sync');
+    } catch (e) {}
+
+    // Init Supabase Realtime Channel
+    if (supabaseClient) {
+        realtimeLiveChannel = supabaseClient.channel('classroom-live-stream');
+        realtimeLiveChannel
+            .on('broadcast', { event: 'teacher_cursor' }, (payload) => handleTeacherCursor(payload.payload))
+            .on('broadcast', { event: 'stream_status' }, (payload) => handleStreamStatus(payload.payload))
+            .subscribe();
+    }
+
+    if (localBroadcastChannel) {
+        localBroadcastChannel.onmessage = (e) => {
+            if (e.data.event === 'teacher_cursor') handleTeacherCursor(e.data.payload);
+            if (e.data.event === 'stream_status') handleStreamStatus(e.data.payload);
+        };
+    }
+
+    function handleStreamStatus({ active, teacherName, subjectId }) {
+        if (active && !isBroadcasting) {
+            if (studentLiveBanner) studentLiveBanner.style.display = 'flex';
+            if (liveBannerTeacherName) {
+                liveBannerTeacherName.textContent = `👨‍🏫 ${teacherName || 'Cô Giáo Anh Đào'} đang phát sóng bài giảng trực tiếp môn ${SUBJECT_TEMPLATES[subjectId]?.name || 'Tin học'} lớp 5A`;
+            }
+            if (teacherLaserPointer) teacherLaserPointer.style.display = 'flex';
+            if (laserLabelText) laserLabelText.textContent = `👨‍🏫 ${teacherName || 'Cô Giáo'}`;
+            showToast(`Giáo viên đang phát sóng bài giảng trực tiếp!`, 'fa-satellite-dish', 'info');
+        } else if (!active) {
+            if (studentLiveBanner) studentLiveBanner.style.display = 'none';
+            if (teacherLaserPointer) teacherLaserPointer.style.display = 'none';
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('speaking-active'));
+        }
+    }
+
+    function handleTeacherCursor({ x, y, activeNodeId, subjectId }) {
+        if (isBroadcasting) return; // Don't move pointer on teacher's own screen
+
+        if (teacherLaserPointer) {
+            teacherLaserPointer.style.display = 'flex';
+            teacherLaserPointer.style.left = `${x}px`;
+            teacherLaserPointer.style.top = `${y}px`;
+        }
+
+        // Highlight focused node
+        if (activeNodeId) {
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('speaking-active'));
+            const targetNode = document.getElementById(activeNodeId);
+            if (targetNode) {
+                targetNode.classList.add('speaking-active');
+                // Auto-scroll student's view if enabled
+                if (followTeacherCheckbox?.checked) {
+                    targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+    }
+
+    liveBroadcastBtn?.addEventListener('click', async () => {
+        // Must be teacher or enter PIN
+        if (!isTeacherMode && (!window.authService || !window.authService.isTeacher())) {
+            teacherPinModal?.classList.add('active');
+            showToast('Chế độ phát sóng trực tiếp dành cho Giáo viên. Vui lòng xác thực mã PIN 1234!', 'fa-lock', 'info');
+            return;
+        }
+
+        isBroadcasting = !isBroadcasting;
+        const user = window.authService ? window.authService.getUser() : null;
+        const teacherName = user ? user.full_name : 'Cô Giáo Anh Đào';
+
+        if (isBroadcasting) {
+            liveBroadcastBtn.classList.add('broadcasting');
+            if (broadcastIcon) broadcastIcon.className = 'fa-solid fa-satellite-dish fa-beat';
+            if (broadcastText) broadcastText.textContent = '🔴 Đang phát sóng';
+
+            const payload = { active: true, teacherName, subjectId: currentSubjectId };
+            if (realtimeLiveChannel) realtimeLiveChannel.send({ type: 'broadcast', event: 'stream_status', payload });
+            if (localBroadcastChannel) localBroadcastChannel.postMessage({ event: 'stream_status', payload });
+
+            showToast('Đã BẬT phát sóng bài giảng trực tiếp tới phòng máy học sinh!', 'fa-tower-broadcast', 'success');
+            playVictoryFanfare();
+            launchConfetti();
+        } else {
+            liveBroadcastBtn.classList.remove('broadcasting');
+            if (broadcastIcon) broadcastIcon.className = 'fa-solid fa-satellite-dish';
+            if (broadcastText) broadcastText.textContent = 'Phát sóng GV';
+
+            const payload = { active: false };
+            if (realtimeLiveChannel) realtimeLiveChannel.send({ type: 'broadcast', event: 'stream_status', payload });
+            if (localBroadcastChannel) localBroadcastChannel.postMessage({ event: 'stream_status', payload });
+
+            showToast('Đã dừng phát sóng bài giảng trực tiếp.', 'fa-pause', 'info');
+            playClickSound();
+        }
+    });
+
+    // Track Teacher mouse movement when broadcasting
+    window.addEventListener('mousemove', (e) => {
+        if (!isBroadcasting) return;
+
+        const hoveredNode = e.target.closest('.node');
+        const activeNodeId = hoveredNode ? hoveredNode.id : null;
+
+        const payload = {
+            x: e.clientX,
+            y: e.clientY,
+            activeNodeId,
+            subjectId: currentSubjectId
+        };
+
+        if (realtimeLiveChannel) {
+            realtimeLiveChannel.send({ type: 'broadcast', event: 'teacher_cursor', payload });
+        }
+        if (localBroadcastChannel) {
+            localBroadcastChannel.postMessage({ event: 'teacher_cursor', payload });
+        }
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -3984,6 +4117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 

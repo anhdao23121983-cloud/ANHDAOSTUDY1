@@ -119,6 +119,12 @@
                 <span id="ttsText">Đọc AI: Tắt</span>
             </button>
 
+            <!-- Teacher Live Classroom Broadcast Button -->
+            <button class="action-btn btn-broadcast" id="liveBroadcastBtn" title="Phát sóng bài giảng trực tiếp tới toàn bộ học sinh trong phòng máy (Live Broadcast)">
+                <i class="fa-solid fa-satellite-dish" id="broadcastIcon"></i>
+                <span id="broadcastText">Phát sóng GV</span>
+            </button>
+
             <!-- Theme Mode Toggle (Dark/Light) -->
             <button class="theme-toggle-btn" id="themeToggle" title="Chuyển đổi Chế độ Sáng / Tối">
                 <i class="fa-solid fa-moon" id="themeIcon"></i>
@@ -161,6 +167,26 @@
                 <span id="soundText">Âm thanh: Bật</span>
             </button>
         </div>
+    </div>
+
+    <!-- Student Live Broadcast Banner (Appears when teacher is streaming) -->
+    <div class="student-live-banner" id="studentLiveBanner" style="display: none;">
+        <div class="live-banner-left">
+            <span class="live-pulsing-badge"><i class="fa-solid fa-satellite-dish fa-beat"></i> ĐANG PHÁT TRỰC TIẾP</span>
+            <span id="liveBannerTeacherName">👨‍🏫 Cô Giáo Anh Đào đang giảng bài trực tiếp môn Tin học lớp 5A</span>
+        </div>
+        <div class="live-banner-right">
+            <label class="live-follow-toggle">
+                <input type="checkbox" id="followTeacherCheckbox" checked>
+                <span>Tự động theo dõi trỏ chuột của Giáo viên</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Teacher Live Laser Pointer -->
+    <div class="teacher-laser-pointer" id="teacherLaserPointer" style="display: none;">
+        <div class="laser-dot"></div>
+        <div class="laser-label" id="laserLabelText">👨‍🏫 Cô Giáo</div>
     </div>
 
     <div class="flowchart-container">
