@@ -48,6 +48,12 @@
                 <i class="fa-solid fa-clone"></i>
                 <span>Ghép thẻ Flashcard</span>
             </button>
+
+            <!-- Class Social Feed & Discussion Button -->
+            <button class="action-btn btn-feed" id="openFeedBtn" title="Bảng tin lớp học tương tác: Thông báo, bài tập & Thảo luận">
+                <i class="fa-solid fa-comments"></i>
+                <span>Bảng tin lớp</span>
+            </button>
         </div>
 
         <div class="top-controls-right">
@@ -1221,6 +1227,47 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="forgotCancelBtn" style="width: 100%;">Hủy bỏ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Social Feed & Discussion Modal -->
+    <div class="modal-overlay" id="classFeedModal">
+        <div class="modal-card modal-card-lg" style="max-width: 680px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-comments"></i> Bảng Tin Lớp Học & Thảo Luận Trực Tuyến</h3>
+                <button class="modal-close" id="feedModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; background: #F8FAFC;">
+                <!-- Create Post Card -->
+                <div class="create-post-card">
+                    <div class="post-card-top">
+                        <img src="https://img.icons8.com/color/96/student-male.png" alt="Avatar" class="post-my-avatar" id="feedMyAvatar">
+                        <textarea id="feedPostContent" placeholder="Thầy cô hoặc em muốn chia sẻ bài học, bài tập hay lời chúc gì tới lớp hôm nay?..." rows="3"></textarea>
+                    </div>
+                    <div class="post-card-bottom">
+                        <div class="post-tag-selector">
+                            <button type="button" class="post-tag-btn active" data-tag="📢 Thông báo">📢 Thông báo</button>
+                            <button type="button" class="post-tag-btn" data-tag="📝 Bài tập">📝 Bài tập</button>
+                            <button type="button" class="post-tag-btn" data-tag="🏆 Khen thưởng">🏆 Khen thưởng</button>
+                            <button type="button" class="post-tag-btn" data-tag="💡 Mẹo học hay">💡 Mẹo hay</button>
+                        </div>
+                        <button class="btn btn-primary" id="publishPostBtn">
+                            <i class="fa-solid fa-paper-plane"></i> Đăng bài
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feed Stream Posts Container -->
+                <div class="feed-posts-container" id="feedPostsContainer">
+                    <!-- Dynamic Post Cards rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-secondary" id="refreshFeedBtn">
+                    <i class="fa-solid fa-rotate"></i> Làm mới bảng tin
+                </button>
+                <button class="btn btn-primary" id="feedModalDoneBtn">Xong</button>
             </div>
         </div>
     </div>

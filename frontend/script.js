@@ -3661,6 +3661,268 @@ document.addEventListener('DOMContentLoaded', () => {
         playClickSound();
     });
 
+    // --- 23. Class Social Feed & Online Classroom Discussion ---
+    const openFeedBtn = document.getElementById('openFeedBtn');
+    const classFeedModal = document.getElementById('classFeedModal');
+    const feedModalCloseBtn = document.getElementById('feedModalCloseBtn');
+    const feedModalDoneBtn = document.getElementById('feedModalDoneBtn');
+    const refreshFeedBtn = document.getElementById('refreshFeedBtn');
+    const feedPostsContainer = document.getElementById('feedPostsContainer');
+    const feedPostContent = document.getElementById('feedPostContent');
+    const publishPostBtn = document.getElementById('publishPostBtn');
+    const feedMyAvatar = document.getElementById('feedMyAvatar');
+    let currentFeedTag = '📢 Thông báo';
+
+    document.querySelectorAll('.post-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.post-tag-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFeedTag = btn.dataset.tag || '📢 Thông báo';
+            playClickSound();
+        });
+    });
+
+    const DEFAULT_FEED_POSTS = [
+        {
+            id: 'post_1',
+            author_name: 'Cô Giáo Anh Đào',
+            author_username: 'giaovien',
+            author_avatar: 'https://img.icons8.com/color/96/teacher.png',
+            author_role: 'teacher',
+            classroom: '5A',
+            badge_tag: '📢 Thông báo',
+            content: 'Chào các em học sinh lớp 5A thân yêu! 🌟 Hôm nay lớp chúng mình đã hoàn thành rất tốt bài học Tin học về các thiết bị máy tính và thực hành trắc nghiệm trực tuyến. Các em hãy làm bài luyện tập và ghi âm giọng đọc bài nhé!',
+            likes_count: 24,
+            created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
+            comments: [
+                { author_name: 'Đào Thùy Anh', content: 'Dạ chúng em đã học xong và làm Quiz được 100 điểm rồi ạ cô!' },
+                { author_name: 'Trần Minh Đức', content: 'Sơ đồ bài học của cô rất đẹp và dễ hiểu ạ!' }
+            ]
+        },
+        {
+            id: 'post_2',
+            author_name: 'Đào Thùy Anh',
+            author_username: 'hocsinh5a',
+            author_avatar: 'https://img.icons8.com/color/96/student-male.png',
+            author_role: 'student',
+            classroom: '5A',
+            badge_tag: '🏆 Khen thưởng',
+            content: 'Em vừa đạt huy chương vàng trên bảng xếp hạng Quiz môn Tin học! Chúc các bạn trong lớp cùng học tốt nhé! 🎉',
+            likes_count: 15,
+            created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+            comments: [
+                { author_name: 'Cô Giáo Anh Đào', content: 'Chúc mừng em Thùy Anh nhé! Rất đáng khen ngợi 🌟' }
+            ]
+        }
+    ];
+
+    async function fetchClassPostsFromSupabase() {
+        if (!feedPostsContainer) return;
+        feedPostsContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#64748B;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải bảng tin lớp học từ Supabase...</div>';
+
+        let posts = [];
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient.from('class_posts').select('*').order('created_at', { ascending: false }).limit(20);
+                if (!error && data && data.length > 0) {
+                    // Fetch comments for each
+                    const { data: allComments } = await supabaseClient.from('post_comments').select('*').order('created_at', { ascending: true });
+                    posts = data.map(p => ({
+                        ...p,
+                        comments: (allComments || []).filter(c => c.post_id === p.id)
+                    }));
+                }
+            } catch (e) {
+                console.error('Lỗi tải class_posts:', e);
+            }
+        }
+
+        if (posts.length === 0) {
+            const localPosts = JSON.parse(localStorage.getItem('anhdao_class_posts') || '[]');
+            posts = localPosts.length > 0 ? localPosts : DEFAULT_FEED_POSTS;
+        }
+
+        renderFeedPosts(posts);
+    }
+
+    function renderFeedPosts(posts) {
+        if (!feedPostsContainer) return;
+        feedPostsContainer.innerHTML = '';
+
+        posts.forEach(post => {
+            const timeStr = new Date(post.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+            const isTeacher = post.author_role === 'teacher';
+            const roleBadge = isTeacher ? '👨‍🏫 Giáo viên' : '🎓 Học sinh';
+
+            const card = document.createElement('div');
+            card.className = 'feed-post-card';
+            card.innerHTML = `
+                <div class="post-author-row">
+                    <div class="post-author-left">
+                        <img src="${post.author_avatar || 'https://img.icons8.com/color/96/student-male.png'}" class="post-author-img">
+                        <div>
+                            <div class="post-author-name">${post.author_name} <small style="color:${isTeacher ? '#7C3AED' : '#2563EB'}; font-size:11px;">(${roleBadge})</small></div>
+                            <div class="post-time">${timeStr} • Lớp ${post.classroom || '5A'}</div>
+                        </div>
+                    </div>
+                    <span class="post-tag-chip">${post.badge_tag || '📢 Thông báo'}</span>
+                </div>
+                <div class="post-text-content">${post.content}</div>
+                <div class="post-actions-bar">
+                    <button class="btn-post-act btn-like-post" data-id="${post.id}">
+                        <i class="fa-solid fa-heart" style="color:#EF4444;"></i> <span>${post.likes_count || 0} Yêu thích</span>
+                    </button>
+                    <button class="btn-post-act">
+                        <i class="fa-solid fa-comment-dots"></i> <span>${(post.comments || []).length} Bình luận</span>
+                    </button>
+                </div>
+                <div class="post-comments-container">
+                    <div class="comments-list" id="comments-list-${post.id}">
+                        ${(post.comments || []).map(c => `
+                            <div class="comment-bubble">
+                                <span class="comment-author">${c.author_name}:</span>
+                                <span>${c.content}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="comment-input-wrap">
+                        <input type="text" placeholder="Viết phản hồi cho bài đăng..." class="input-comment-text" data-id="${post.id}">
+                        <button class="btn-send-comment btn-submit-comment" data-id="${post.id}"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            `;
+
+            // Like action
+            card.querySelector('.btn-like-post')?.addEventListener('click', async (e) => {
+                post.likes_count = (post.likes_count || 0) + 1;
+                e.currentTarget.querySelector('span').textContent = `${post.likes_count} Yêu thích`;
+                playClickSound();
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('class_posts').update({ likes_count: post.likes_count }).eq('id', post.id);
+                    } catch (err) {}
+                }
+            });
+
+            // Comment action
+            const commentInput = card.querySelector('.input-comment-text');
+            const commentBtn = card.querySelector('.btn-submit-comment');
+            const submitComment = async () => {
+                const text = (commentInput?.value || '').trim();
+                if (!text) return;
+
+                const user = window.authService ? window.authService.getUser() : null;
+                const author = user ? user.full_name : currentStudent.name;
+
+                const newComment = {
+                    post_id: post.id,
+                    author_name: author,
+                    author_username: user ? user.username : 'hocsinh5a',
+                    author_avatar: user ? user.avatar : 'https://img.icons8.com/color/96/student-male.png',
+                    content: text,
+                    created_at: new Date().toISOString()
+                };
+
+                const listEl = document.getElementById(`comments-list-${post.id}`);
+                if (listEl) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'comment-bubble';
+                    bubble.innerHTML = `<span class="comment-author">${author}:</span> <span>${text}</span>`;
+                    listEl.appendChild(bubble);
+                }
+
+                if (commentInput) commentInput.value = '';
+                showToast('Đã gửi phản hồi lên bảng tin lớp!', 'fa-comment', 'success');
+                playClickSound();
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('post_comments').insert(newComment);
+                    } catch (err) {}
+                }
+            };
+
+            commentBtn?.addEventListener('click', submitComment);
+            commentInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitComment();
+            });
+
+            feedPostsContainer.appendChild(card);
+        });
+    }
+
+    // Publish New Post
+    publishPostBtn?.addEventListener('click', async () => {
+        const text = (feedPostContent?.value || '').trim();
+        if (!text) {
+            showToast('Vui lòng nhập nội dung bài đăng!', 'fa-triangle-exclamation', 'error');
+            return;
+        }
+
+        const user = window.authService ? window.authService.getUser() : null;
+        const authorName = user ? user.full_name : currentStudent.name;
+        const authorUsername = user ? user.username : 'hocsinh5a';
+        const authorRole = user ? user.role : 'student';
+        const authorAvatar = user ? user.avatar : 'https://img.icons8.com/color/96/student-male.png';
+
+        const newPost = {
+            id: 'post_' + Date.now(),
+            author_name: authorName,
+            author_username: authorUsername,
+            author_avatar: authorAvatar,
+            author_role: authorRole,
+            classroom: currentStudent.classroom || '5A',
+            badge_tag: currentFeedTag,
+            content: text,
+            likes_count: 1,
+            created_at: new Date().toISOString()
+        };
+
+        if (publishPostBtn) {
+            publishPostBtn.disabled = true;
+            publishPostBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng...';
+        }
+
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('class_posts').insert(newPost);
+            } catch (err) {
+                console.error('Lỗi đăng bài Supabase:', err);
+            }
+        }
+
+        const localPosts = JSON.parse(localStorage.getItem('anhdao_class_posts') || '[]');
+        localPosts.unshift({ ...newPost, comments: [] });
+        localStorage.setItem('anhdao_class_posts', JSON.stringify(localPosts));
+
+        if (feedPostContent) feedPostContent.value = '';
+        if (publishPostBtn) {
+            publishPostBtn.disabled = false;
+            publishPostBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Đăng bài';
+        }
+
+        showToast('Đăng thông báo lên bảng tin lớp thành công!', 'fa-circle-check', 'success');
+        playVictoryFanfare();
+        launchConfetti();
+        fetchClassPostsFromSupabase();
+    });
+
+    openFeedBtn?.addEventListener('click', () => {
+        classFeedModal?.classList.add('active');
+        const user = window.authService ? window.authService.getUser() : null;
+        if (feedMyAvatar && user) feedMyAvatar.src = user.avatar;
+        fetchClassPostsFromSupabase();
+        playClickSound();
+    });
+
+    feedModalCloseBtn?.addEventListener('click', () => classFeedModal?.classList.remove('active'));
+    feedModalDoneBtn?.addEventListener('click', () => classFeedModal?.classList.remove('active'));
+    refreshFeedBtn?.addEventListener('click', () => {
+        fetchClassPostsFromSupabase();
+        playClickSound();
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -3675,6 +3937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 

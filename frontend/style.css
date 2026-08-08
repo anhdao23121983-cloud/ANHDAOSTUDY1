@@ -2731,6 +2731,245 @@ body.accessibility-xl-text .action-btn {
     gap: 2px;
 }
 
+/* Class Social Feed & Discussion */
+.action-btn.btn-feed {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1D4ED8;
+}
+
+.action-btn.btn-feed:hover {
+    background: #2563EB;
+    color: #FFFFFF;
+}
+
+.create-post-card {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.post-card-top {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.post-my-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid #7C3AED;
+    background: #FFFFFF;
+    flex-shrink: 0;
+}
+
+.create-post-card textarea {
+    width: 100%;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    resize: vertical;
+    outline: none;
+}
+
+.create-post-card textarea:focus {
+    border-color: #7C3AED;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.post-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.post-tag-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.post-tag-btn {
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.post-tag-btn.active {
+    background: #EDE9FE;
+    color: #7C3AED;
+    border-color: #7C3AED;
+}
+
+/* Feed Stream Posts */
+.feed-posts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.feed-post-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.post-author-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.post-author-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-author-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid #CBD5E1;
+}
+
+.post-author-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.post-time {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.post-tag-chip {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+.post-text-content {
+    font-size: 13.5px;
+    color: #334155;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+}
+
+.post-actions-bar {
+    display: flex;
+    gap: 16px;
+    border-top: 1px solid #F1F5F9;
+    padding-top: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-post-act {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-post-act:hover {
+    color: #2563EB;
+}
+
+.btn-post-act.liked {
+    color: #EF4444;
+}
+
+/* Comments Section */
+.post-comments-container {
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 10px;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.comment-bubble {
+    display: flex;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.comment-input-wrap {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-input-wrap input {
+    flex: 1;
+    border: 1px solid #CBD5E1;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    outline: none;
+}
+
+.comment-input-wrap input:focus {
+    border-color: #7C3AED;
+}
+
+.btn-send-comment {
+    background: #7C3AED;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+
 
 
 
