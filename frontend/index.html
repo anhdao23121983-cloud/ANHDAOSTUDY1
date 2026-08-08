@@ -21,6 +21,13 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Student Management & Progress Button -->
+            <button class="action-btn btn-student" id="studentProfileBtn" title="Hồ sơ học sinh & Quản lý tiến độ học tập">
+                <i class="fa-solid fa-user-graduate"></i>
+                <span id="currentStudentName">Học sinh: Đào Thùy Anh</span>
+                <span class="progress-pill" id="studentProgressPill">0/8</span>
+            </button>
+
             <!-- Supabase Cloud Sync Button -->
             <button class="action-btn btn-supabase" id="supabaseConfigBtn" title="Cấu hình kết nối cơ sở dữ liệu Supabase Cloud">
                 <i class="fa-solid fa-cloud" id="supabaseStatusIcon"></i>
@@ -214,6 +221,91 @@
                     <button class="btn btn-secondary" id="supabaseCancelBtn">Đóng</button>
                     <button class="btn btn-primary" id="supabaseSaveConnectBtn">
                         <i class="fa-solid fa-bolt"></i> Lưu & Kết nối
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Management & Learning Progress Dashboard Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-graduation-cap"></i> Quản lý Học sinh & Tiến độ Bài học (Supabase)</h3>
+                <button class="modal-close" id="studentModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="student-dashboard-tabs">
+                    <button type="button" class="tab-btn active" id="tabCurrentStudent"><i class="fa-solid fa-user-pen"></i> Học sinh hiện tại</button>
+                    <button type="button" class="tab-btn" id="tabClassList"><i class="fa-solid fa-users"></i> Danh sách cả lớp (Supabase Cloud)</button>
+                </div>
+
+                <!-- Tab 1: Current Student Details -->
+                <div class="tab-content" id="tabContentCurrent">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="studentNameInput">Họ và tên học sinh:</label>
+                            <input type="text" id="studentNameInput" placeholder="vd: Nguyễn Văn An, Đào Thùy Anh...">
+                        </div>
+                        <div class="form-group">
+                            <label for="studentClassInput">Lớp học:</label>
+                            <input type="text" id="studentClassInput" placeholder="vd: 5A, 5B, 5C...">
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-card">
+                        <div class="progress-bar-header">
+                            <span class="progress-label"><i class="fa-solid fa-chart-line"></i> Tiến độ hoàn thành bài học:</span>
+                            <span class="progress-val" id="progressPercentage">0% (0/8 bài)</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="checklist-title">
+                        <i class="fa-solid fa-list-check"></i> Đánh dấu các khối bài học đã học xong:
+                    </div>
+                    <div class="lessons-checklist" id="lessonsChecklist">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: Class List from Supabase -->
+                <div class="tab-content" id="tabContentClass" style="display: none;">
+                    <div class="class-actions-bar">
+                        <span class="class-summary-text" id="classSummaryText">Đang tải danh sách...</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="refreshClassListBtn">
+                            <i class="fa-solid fa-rotate"></i> Làm mới
+                        </button>
+                    </div>
+                    <div class="class-table-container">
+                        <table class="class-table" id="classTable">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ và tên</th>
+                                    <th>Lớp</th>
+                                    <th>Tiến độ</th>
+                                    <th>Hoạt động gần nhất</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classTableBody">
+                                <tr><td colspan="6" class="table-loading">Đang tải danh sách học sinh từ Supabase Cloud...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-danger" id="studentResetProgressBtn" title="Đặt lại tiến độ của học sinh này về 0">
+                    <i class="fa-solid fa-rotate-left"></i> Đặt lại tiến độ
+                </button>
+                <div class="modal-footer-right">
+                    <button class="btn btn-secondary" id="studentModalCancelBtn">Đóng</button>
+                    <button class="btn btn-primary" id="studentSaveBtn">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật Supabase
                     </button>
                 </div>
             </div>

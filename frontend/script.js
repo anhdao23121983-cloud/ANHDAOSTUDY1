@@ -900,6 +900,349 @@ document.addEventListener('DOMContentLoaded', () => {
         supabaseModal?.classList.remove('active');
     });
 
+    // --- Student Management & Learning Progress Tracking (Supabase) ---
+    const studentProfileBtn = document.getElementById('studentProfileBtn');
+    const currentStudentNameEl = document.getElementById('currentStudentName');
+    const studentProgressPill = document.getElementById('studentProgressPill');
+    const studentModal = document.getElementById('studentModal');
+    const studentModalCloseBtn = document.getElementById('studentModalCloseBtn');
+    const studentModalCancelBtn = document.getElementById('studentModalCancelBtn');
+    const studentSaveBtn = document.getElementById('studentSaveBtn');
+    const studentResetProgressBtn = document.getElementById('studentResetProgressBtn');
+    const studentNameInput = document.getElementById('studentNameInput');
+    const studentClassInput = document.getElementById('studentClassInput');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const lessonsChecklist = document.getElementById('lessonsChecklist');
+    const tabCurrentStudent = document.getElementById('tabCurrentStudent');
+    const tabClassList = document.getElementById('tabClassList');
+    const tabContentCurrent = document.getElementById('tabContentCurrent');
+    const tabContentClass = document.getElementById('tabContentClass');
+    const classTableBody = document.getElementById('classTableBody');
+    const classSummaryText = document.getElementById('classSummaryText');
+    const refreshClassListBtn = document.getElementById('refreshClassListBtn');
+
+    let currentStudent = {
+        name: localStorage.getItem('current_student_name') || 'Đào Thùy Anh',
+        classroom: localStorage.getItem('current_student_class') || '5A'
+    };
+    let completedLessons = JSON.parse(localStorage.getItem('student_completed_lessons') || '["node-1", "node-3"]');
+
+    function updateStudentUI() {
+        if (currentStudentNameEl) {
+            currentStudentNameEl.textContent = `Học sinh: ${currentStudent.name} (${currentStudent.classroom})`;
+        }
+        if (studentNameInput) studentNameInput.value = currentStudent.name;
+        if (studentClassInput) studentClassInput.value = currentStudent.classroom;
+
+        const totalNodes = 8;
+        const count = completedLessons.length;
+        const percent = Math.round((count / totalNodes) * 100);
+
+        if (studentProgressPill) {
+            studentProgressPill.textContent = `${count}/${totalNodes}`;
+        }
+        if (progressBarFill) {
+            progressBarFill.style.width = `${percent}%`;
+        }
+        if (progressPercentage) {
+            progressPercentage.textContent = `${percent}% (${count}/${totalNodes} bài)`;
+        }
+
+        // Update node completed badges
+        document.querySelectorAll('.node').forEach(node => {
+            let badge = node.querySelector('.node-completed-badge');
+            if (completedLessons.includes(node.id)) {
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'node-completed-badge';
+                    badge.title = 'Đã hoàn thành bài học này!';
+                    badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    node.appendChild(badge);
+                }
+            } else {
+                if (badge) badge.remove();
+            }
+        });
+    }
+
+    function renderChecklist() {
+        if (!lessonsChecklist) return;
+        lessonsChecklist.innerHTML = '';
+
+        document.querySelectorAll('.node').forEach(node => {
+            const title = node.querySelector('.node-title')?.textContent.trim() || node.id;
+            const isChecked = completedLessons.includes(node.id);
+
+            const item = document.createElement('div');
+            item.className = 'checklist-item';
+            item.innerHTML = `
+                <div class="checklist-item-left">
+                    <input type="checkbox" class="checklist-checkbox" id="chk_${node.id}" ${isChecked ? 'checked' : ''}>
+                    <label for="chk_${node.id}" style="cursor:pointer;">${title}</label>
+                </div>
+                <span class="badge-progress" style="background:${isChecked ? '#ECFDF5' : '#F1F5F9'}; color:${isChecked ? '#059669' : '#64748B'};">
+                    ${isChecked ? 'Đã hoàn thành' : 'Chưa học'}
+                </span>
+            `;
+
+            const checkbox = item.querySelector('.checklist-checkbox');
+            checkbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                toggleLessonCompletion(node.id, checkbox.checked);
+            });
+
+            item.addEventListener('click', (e) => {
+                if (e.target !== checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    toggleLessonCompletion(node.id, checkbox.checked);
+                }
+            });
+
+            lessonsChecklist.appendChild(item);
+        });
+    }
+
+    async function toggleLessonCompletion(nodeId, isCompleted) {
+        if (isCompleted) {
+            if (!completedLessons.includes(nodeId)) {
+                completedLessons.push(nodeId);
+            }
+        } else {
+            completedLessons = completedLessons.filter(id => id !== nodeId);
+        }
+
+        localStorage.setItem('student_completed_lessons', JSON.stringify(completedLessons));
+        updateStudentUI();
+        renderChecklist();
+        playClickSound();
+
+        // Sync student progress to Supabase
+        if (supabaseClient) {
+            try {
+                const nodeEl = document.getElementById(nodeId);
+                const nodeTitle = nodeEl?.querySelector('.node-title')?.textContent || nodeId;
+
+                // 1. Log progress record
+                await supabaseClient.from('student_progress').upsert({
+                    student_name: currentStudent.name,
+                    classroom: currentStudent.classroom,
+                    node_id: nodeId,
+                    node_title: nodeTitle,
+                    is_completed: isCompleted,
+                    accessed_at: new Date().toISOString()
+                });
+
+                // 2. Update student aggregate profile
+                await supabaseClient.from('students').upsert({
+                    student_name: currentStudent.name,
+                    classroom: currentStudent.classroom,
+                    completed_lessons_count: completedLessons.length,
+                    last_active: new Date().toISOString()
+                }, { onConflict: 'student_name' });
+
+                showToast(`Đã ghi nhận tiến độ "${nodeTitle}" vào Supabase!`, 'fa-cloud-arrow-up', 'success');
+            } catch (err) {
+                console.warn('Lỗi ghi tiến độ Supabase:', err);
+            }
+        }
+    }
+
+    async function fetchClassListFromSupabase() {
+        if (!classTableBody) return;
+        classTableBody.innerHTML = '<tr><td colspan="6" class="table-loading" style="text-align:center; padding:20px; color:#64748B;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu từ Supabase Cloud...</td></tr>';
+
+        if (!supabaseClient) {
+            classTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#EF4444;"><i class="fa-solid fa-cloud-slash"></i> Chưa kết nối Supabase Cloud. Hãy bấm "Supabase: Cục bộ" để kết nối trước nhé!</td></tr>';
+            if (classSummaryText) classSummaryText.textContent = 'Trạng thái: Chưa kết nối Supabase';
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.from('students').select('*').order('completed_lessons_count', { ascending: false });
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                classTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748B;">Chưa có học sinh nào nộp tiến độ trên Supabase. Hãy bấm "Lưu & Cập nhật" để ghi nhận bạn đầu tiên!</td></tr>';
+                if (classSummaryText) classSummaryText.textContent = 'Tổng số: 0 học sinh';
+                return;
+            }
+
+            if (classSummaryText) classSummaryText.textContent = `Tổng số: ${data.length} học sinh trong hệ thống`;
+            classTableBody.innerHTML = '';
+
+            data.forEach((st, idx) => {
+                const percent = Math.round(((st.completed_lessons_count || 0) / 8) * 100);
+                const lastTime = st.last_active ? new Date(st.last_active).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : 'Vừa xong';
+                const isCurrent = st.student_name === currentStudent.name;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600; color:#64748B;">#${idx + 1}</td>
+                    <td style="font-weight:600; color:#1E293B;">
+                        ${st.student_name} ${isCurrent ? '<span style="color:#2563EB; font-size:11px;">(Đang chọn)</span>' : ''}
+                    </td>
+                    <td><span class="badge-progress">${st.classroom || '5A'}</span></td>
+                    <td>
+                        <span style="font-weight:700; color:${percent >= 75 ? '#059669' : (percent >= 50 ? '#2563EB' : '#D97706')};">
+                            ${st.completed_lessons_count || 0}/8 (${percent}%)
+                        </span>
+                    </td>
+                    <td style="font-size:12px; color:#64748B;">${lastTime}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary select-student-btn" data-name="${st.student_name}" data-class="${st.classroom || '5A'}">
+                            <i class="fa-solid fa-user-check"></i> Chọn
+                        </button>
+                    </td>
+                `;
+
+                tr.querySelector('.select-student-btn')?.addEventListener('click', () => {
+                    currentStudent.name = st.student_name;
+                    currentStudent.classroom = st.classroom || '5A';
+                    localStorage.setItem('current_student_name', currentStudent.name);
+                    localStorage.setItem('current_student_class', currentStudent.classroom);
+                    updateStudentUI();
+                    renderChecklist();
+                    fetchStudentProgressFromSupabase(st.student_name);
+                    showToast(`Đã chuyển sang hồ sơ học sinh: ${st.student_name}`, 'fa-user-graduate', 'success');
+                    tabCurrentStudent?.click();
+                });
+
+                classTableBody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error('Lỗi tải danh sách lớp:', err);
+            classTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#EF4444;">Lỗi: ${err.message || 'Không thể truy vấn bảng students'}</td></tr>`;
+        }
+    }
+
+    async function fetchStudentProgressFromSupabase(studentName) {
+        if (!supabaseClient) return;
+        try {
+            const { data } = await supabaseClient.from('student_progress').select('*').eq('student_name', studentName).eq('is_completed', true);
+            if (data) {
+                completedLessons = data.map(d => d.node_id);
+                localStorage.setItem('student_completed_lessons', JSON.stringify(completedLessons));
+                updateStudentUI();
+                renderChecklist();
+            }
+        } catch (e) {}
+    }
+
+    // Tab switching
+    tabCurrentStudent?.addEventListener('click', () => {
+        tabCurrentStudent.classList.add('active');
+        tabClassList?.classList.remove('active');
+        if (tabContentCurrent) tabContentCurrent.style.display = 'block';
+        if (tabContentClass) tabContentClass.style.display = 'none';
+        playClickSound();
+    });
+
+    tabClassList?.addEventListener('click', () => {
+        tabClassList.classList.add('active');
+        tabCurrentStudent?.classList.remove('active');
+        if (tabContentCurrent) tabContentCurrent.style.display = 'none';
+        if (tabContentClass) tabContentClass.style.display = 'block';
+        fetchClassListFromSupabase();
+        playClickSound();
+    });
+
+    refreshClassListBtn?.addEventListener('click', () => {
+        fetchClassListFromSupabase();
+        playClickSound();
+    });
+
+    studentProfileBtn?.addEventListener('click', () => {
+        updateStudentUI();
+        renderChecklist();
+        studentModal?.classList.add('active');
+    });
+
+    studentModalCloseBtn?.addEventListener('click', () => {
+        studentModal?.classList.remove('active');
+    });
+
+    studentModalCancelBtn?.addEventListener('click', () => {
+        studentModal?.classList.remove('active');
+    });
+
+    studentSaveBtn?.addEventListener('click', async () => {
+        const name = studentNameInput ? studentNameInput.value.trim() : '';
+        const classroom = studentClassInput ? studentClassInput.value.trim() : '5A';
+
+        if (!name) {
+            alert('Vui lòng nhập tên học sinh!');
+            return;
+        }
+
+        currentStudent.name = name;
+        currentStudent.classroom = classroom;
+        localStorage.setItem('current_student_name', name);
+        localStorage.setItem('current_student_class', classroom);
+
+        updateStudentUI();
+
+        // Update Node-2 title if needed
+        const node2 = document.getElementById('node-2');
+        if (node2) {
+            const descEl = node2.querySelector('.node-desc');
+            if (descEl) descEl.textContent = `HS: ${name} - Lớp ${classroom}`;
+        }
+
+        // Save to Supabase
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('students').upsert({
+                    student_name: name,
+                    classroom: classroom,
+                    completed_lessons_count: completedLessons.length,
+                    last_active: new Date().toISOString()
+                }, { onConflict: 'student_name' });
+            } catch (e) {}
+        }
+
+        studentModal?.classList.add('active');
+        showToast(`Đã lưu hồ sơ học sinh: ${name} (${classroom})!`, 'fa-floppy-disk', 'success');
+        playClickSound();
+    });
+
+    studentResetProgressBtn?.addEventListener('click', async () => {
+        if (confirm(`Đặt lại tiến độ bài học của học sinh "${currentStudent.name}" về 0?`)) {
+            completedLessons = [];
+            localStorage.setItem('student_completed_lessons', JSON.stringify([]));
+            updateStudentUI();
+            renderChecklist();
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('student_progress').delete().eq('student_name', currentStudent.name);
+                    await supabaseClient.from('students').upsert({
+                        student_name: currentStudent.name,
+                        classroom: currentStudent.classroom,
+                        completed_lessons_count: 0,
+                        last_active: new Date().toISOString()
+                    }, { onConflict: 'student_name' });
+                } catch (e) {}
+            }
+
+            showToast('Đã đặt lại tiến độ học tập về 0!', 'fa-rotate-left', 'info');
+            playClickSound();
+        }
+    });
+
+    // Make Node-2 click open the Student Modal
+    const node2El = document.getElementById('node-2');
+    node2El?.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        updateStudentUI();
+        renderChecklist();
+        studentModal?.classList.add('active');
+    });
+
+    // Auto-init UI
+    updateStudentUI();
+    renderChecklist();
+
     supabaseSaveConnectBtn?.addEventListener('click', async () => {
         const url = supabaseUrlInput.value.trim();
         const key = supabaseKeyInput.value.trim();

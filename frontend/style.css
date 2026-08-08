@@ -228,6 +228,29 @@ body {
     box-shadow: 0 6px 16px rgba(239, 68, 68, 0.15);
 }
 
+.action-btn.btn-student {
+    border-color: #3B82F6;
+    color: #1D4ED8;
+    background: #EFF6FF;
+}
+
+.action-btn.btn-student:hover {
+    border-color: #2563EB;
+    color: #1E40AF;
+    background: #DBEAFE;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+}
+
+.progress-pill {
+    background: #2563EB;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 4px;
+}
+
 .action-btn.btn-supabase {
     border-color: #3ECF8E;
     color: #059669;
@@ -244,6 +267,233 @@ body {
     background: #ECFDF5;
     border-color: #10B981;
     color: #065F46;
+}
+
+/* Modal Card Large */
+.modal-card.modal-card-lg {
+    max-width: 680px;
+    width: 95%;
+}
+
+.student-dashboard-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #E2E8F0;
+    padding-bottom: 8px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #64748B;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    color: #1E293B;
+    background: #F1F5F9;
+}
+
+.tab-btn.active {
+    color: #2563EB;
+    background: #EFF6FF;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.progress-bar-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 16px 0;
+}
+
+.progress-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.progress-val {
+    color: #2563EB;
+    font-weight: 700;
+}
+
+.progress-bar-track {
+    width: 100%;
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3B82F6, #10B981);
+    border-radius: 8px;
+    transition: width 0.4s ease;
+}
+
+.checklist-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lessons-checklist {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    background: #FFFFFF;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #F1F5F9;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.checklist-item:last-child {
+    border-bottom: none;
+}
+
+.checklist-item:hover {
+    background: #F8FAFC;
+}
+
+.checklist-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #1E293B;
+}
+
+.checklist-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #10B981;
+    cursor: pointer;
+}
+
+/* Class Table */
+.class-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.class-summary-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn-outline-primary {
+    background: #FFFFFF;
+    border: 1px solid #3B82F6;
+    color: #2563EB;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.class-table-container {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+}
+
+.class-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.class-table th {
+    background: #F8FAFC;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 2px solid #E2E8F0;
+}
+
+.class-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #1E293B;
+}
+
+.class-table tr:hover {
+    background: #F8FAFC;
+}
+
+.badge-progress {
+    display: inline-block;
+    padding: 3px 8px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.node-completed-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: #10B981;
+    color: #FFFFFF;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+    z-index: 20;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
 }
 
 .modal-hint {
