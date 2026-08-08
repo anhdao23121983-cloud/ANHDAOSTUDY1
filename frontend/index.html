@@ -23,17 +23,45 @@
                 <button class="search-clear-btn" id="searchClearBtn" title="Xóa tìm kiếm">&times;</button>
             </div>
 
+            <!-- Grade Level Selector (Lớp 1 đến Lớp 12 - Bộ GD&ĐT) -->
+            <div class="grade-switcher-container">
+                <select class="grade-select" id="gradeSelector" title="Chọn khối lớp học (Lớp 1 đến Lớp 12 theo chuẩn Bộ GD&ĐT)">
+                    <optgroup label="🎒 CẤP 1 - TIỂU HỌC">
+                        <option value="lop1">Lớp 1</option>
+                        <option value="lop2">Lớp 2</option>
+                        <option value="lop3">Lớp 3</option>
+                        <option value="lop4">Lớp 4</option>
+                        <option value="lop5" selected>Lớp 5 (Khối 5)</option>
+                    </optgroup>
+                    <optgroup label="📚 CẤP 2 - TRUNG HỌC CƠ SỞ (THCS)">
+                        <option value="lop6">Lớp 6</option>
+                        <option value="lop7">Lớp 7</option>
+                        <option value="lop8">Lớp 8</option>
+                        <option value="lop9">Lớp 9</option>
+                    </optgroup>
+                    <optgroup label="🎓 CẤP 3 - TRUNG HỌC PHỔ THÔNG (THPT)">
+                        <option value="lop10">Lớp 10</option>
+                        <option value="lop11">Lớp 11</option>
+                        <option value="lop12">Lớp 12 (Ôn thi Tốt nghiệp THPT)</option>
+                    </optgroup>
+                </select>
+            </div>
+
             <!-- Subject Switcher Dropdown & Add Button -->
             <div class="subject-switcher-container">
                 <select class="subject-select" id="subjectSelector" title="Chọn môn học / sơ đồ bài học">
                     <option value="tinhoc" data-icon="desktop" data-color="#7C3AED">💻 Môn Tin học</option>
                     <option value="toan" data-icon="calculator" data-color="#2563EB">📐 Môn Toán học</option>
-                    <option value="tiengviet" data-icon="book" data-color="#059669">📖 Môn Tiếng Việt</option>
+                    <option value="tiengviet" data-icon="book" data-color="#059669">📖 Môn Tiếng Việt / Ngữ văn</option>
                     <option value="tienganh" data-icon="globe" data-color="#D97706">🌐 Môn Tiếng Anh</option>
-                    <option value="khoahoc" data-icon="flask" data-color="#E11D48">🔬 Môn Khoa học</option>
+                    <option value="khoahoc" data-icon="flask" data-color="#E11D48">🔬 Môn Khoa học Tự nhiên / Vật lý</option>
+                    <option value="hoahoc" data-icon="flask" data-color="#0891B2">🧪 Môn Hóa học</option>
+                    <option value="sinhhoc" data-icon="leaf" data-color="#16A34A">🌱 Môn Sinh học</option>
+                    <option value="lichsu" data-icon="landmark" data-color="#B45309">🏛️ Môn Lịch sử & Địa lý</option>
+                    <option value="gdcd" data-icon="scale-balanced" data-color="#9333EA">⚖️ Môn GDCD / Kinh tế & Pháp luật</option>
                 </select>
                 <button class="action-btn btn-add-subject" id="addSubjectBtn" title="Tạo thêm môn học / sơ đồ mới">
-                    <i class="fa-solid fa-folder-plus"></i> <span>Tạo môn mới</span>
+                    <i class="fa-solid fa-folder-plus"></i> <span>Tạo môn</span>
                 </button>
             </div>
 
@@ -1406,6 +1434,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseConfig.js"></script>
     <script src="authService.js"></script>
+    <script src="curriculumData.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
     <script src="script.js"></script>

@@ -1365,12 +1365,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Grade Level & Multi-Subject Curriculum Management (Bộ GD&ĐT) ---
+    const gradeSelector = document.getElementById('gradeSelector');
+    let currentGradeKey = localStorage.getItem('current_grade_level') || 'lop5';
+
+    function populateSubjectsForGrade(gradeKey) {
+        if (!subjectSelector) return;
+        const gradeInfo = window.CURRICULUM_CATALOG ? window.CURRICULUM_CATALOG[gradeKey] : null;
+        if (!gradeInfo || !gradeInfo.subjects) return;
+
+        subjectSelector.innerHTML = '';
+        Object.keys(gradeInfo.subjects).forEach(subKey => {
+            const sub = gradeInfo.subjects[subKey];
+            const opt = document.createElement('option');
+            opt.value = subKey;
+            opt.dataset.color = sub.color || '#2563EB';
+            opt.dataset.icon = sub.icon || 'book';
+            opt.textContent = `📚 ${sub.name}`;
+            subjectSelector.appendChild(opt);
+        });
+    }
+
+    if (gradeSelector) {
+        gradeSelector.value = currentGradeKey;
+        gradeSelector.addEventListener('change', (e) => {
+            currentGradeKey = e.target.value;
+            localStorage.setItem('current_grade_level', currentGradeKey);
+            populateSubjectsForGrade(currentGradeKey);
+            
+            // Switch to first subject of this grade
+            const gradeInfo = window.CURRICULUM_CATALOG ? window.CURRICULUM_CATALOG[currentGradeKey] : null;
+            if (gradeInfo && gradeInfo.subjects) {
+                const firstSub = Object.keys(gradeInfo.subjects)[0];
+                switchSubjectDiagram(firstSub, true);
+                showToast(`Đã chuyển sang chương trình: ${gradeInfo.name}!`, 'fa-graduation-cap', 'success');
+            }
+            playClickSound();
+        });
+    }
+
     function switchSubjectDiagram(subjectId, isManual = true) {
         currentSubjectId = subjectId;
         localStorage.setItem('current_diagram_subject', subjectId);
         if (subjectSelector) subjectSelector.value = subjectId;
 
-        const tmpl = SUBJECT_TEMPLATES[subjectId] || SUBJECT_TEMPLATES['tinhoc'];
+        // Query template from CURRICULUM_CATALOG first, then fallback to SUBJECT_TEMPLATES
+        let tmpl = null;
+        if (window.CURRICULUM_CATALOG && window.CURRICULUM_CATALOG[currentGradeKey]?.subjects[subjectId]) {
+            tmpl = window.CURRICULUM_CATALOG[currentGradeKey].subjects[subjectId];
+        } else {
+            tmpl = SUBJECT_TEMPLATES[subjectId] || SUBJECT_TEMPLATES['tinhoc'];
+        }
+
         const subColor = tmpl.color || '#7C3AED';
 
         if (subjectSelector) {
@@ -1379,12 +1425,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Check if custom node data exists for this subject in localStorage
-        const customKey = `flowchart_nodes_data_${subjectId}`;
+        const customKey = `flowchart_nodes_data_${currentGradeKey}_${subjectId}`;
         const savedData = JSON.parse(localStorage.getItem(customKey) || 'null');
         const nodesSource = savedData || tmpl.nodes;
 
         document.querySelectorAll('.node').forEach(node => {
-            const data = nodesSource[node.id] || tmpl.nodes[node.id];
+            const data = nodesSource[node.id] || (tmpl.nodes ? tmpl.nodes[node.id] : null);
             if (data) {
                 const titleEl = node.querySelector('.node-title');
                 const descEl = node.querySelector('.node-desc');
@@ -1417,6 +1463,9 @@ document.addEventListener('DOMContentLoaded', () => {
             playClickSound();
         }
     }
+
+    // Initialize grade and subject dropdowns
+    populateSubjectsForGrade(currentGradeKey);
 
     // Color selector for new subject
     document.querySelectorAll('#subjectColorSelector .color-opt').forEach(btn => {
@@ -1630,13 +1679,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let quizOptionSelected = false;
 
     function startQuiz(subjectId = currentSubjectId) {
-        currentQuizQuestions = QUIZ_BANKS[subjectId] || QUIZ_BANKS['tinhoc'];
+        // Query quiz bank from CURRICULUM_CATALOG for active grade
+        let questions = null;
+        if (window.CURRICULUM_CATALOG && window.CURRICULUM_CATALOG[currentGradeKey]?.subjects[subjectId]?.quizzes) {
+            questions = window.CURRICULUM_CATALOG[currentGradeKey].subjects[subjectId].quizzes;
+        } else {
+            questions = QUIZ_BANKS[subjectId] || QUIZ_BANKS['tinhoc'];
+        }
+
+        currentQuizQuestions = questions;
         currentQuizIndex = 0;
         quizScoreCorrect = 0;
         quizTimeStart = Date.now();
 
-        const tmpl = SUBJECT_TEMPLATES[subjectId] || SUBJECT_TEMPLATES['tinhoc'];
-        if (quizModalTitle) quizModalTitle.textContent = `Bài kiểm tra Trắc nghiệm ${tmpl.name}`;
+        let subName = 'Tin học';
+        if (window.CURRICULUM_CATALOG && window.CURRICULUM_CATALOG[currentGradeKey]?.subjects[subjectId]) {
+            subName = window.CURRICULUM_CATALOG[currentGradeKey].subjects[subjectId].name;
+        } else if (SUBJECT_TEMPLATES[subjectId]) {
+            subName = SUBJECT_TEMPLATES[subjectId].name;
+        }
+
+        if (quizModalTitle) quizModalTitle.textContent = `Bài kiểm tra Trắc nghiệm ${subName} (${currentGradeKey.toUpperCase()})`;
 
         if (quizQuestionScreen) quizQuestionScreen.style.display = 'block';
         if (quizResultScreen) quizResultScreen.style.display = 'none';
@@ -3556,13 +3619,20 @@ document.addEventListener('DOMContentLoaded', () => {
         isFlipping = false;
         clearInterval(flashcardTimerInterval);
 
+        let pairs = null;
+        if (window.CURRICULUM_CATALOG && window.CURRICULUM_CATALOG[currentGradeKey]?.subjects[currentSubjectId]?.flashcards) {
+            pairs = window.CURRICULUM_CATALOG[currentGradeKey].subjects[currentSubjectId].flashcards;
+        } else {
+            pairs = FLASHCARD_PAIRS;
+        }
+
         if (flashcardMovesText) flashcardMovesText.textContent = '0';
-        if (flashcardPairsText) flashcardPairsText.textContent = `0 / ${FLASHCARD_PAIRS.length}`;
+        if (flashcardPairsText) flashcardPairsText.textContent = `0 / ${pairs.length}`;
         if (flashcardTimerText) flashcardTimerText.textContent = '00:00';
 
-        // Prepare 12 cards (6 pairs)
+        // Prepare cards
         let cardsData = [];
-        FLASHCARD_PAIRS.forEach(p => {
+        pairs.forEach(p => {
             cardsData.push({ pairId: p.id, label: p.text });
             cardsData.push({ pairId: p.id, label: p.matchText });
         });

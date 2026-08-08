@@ -3380,6 +3380,46 @@ body.accessibility-xl-text .action-btn {
     font-weight: 600;
 }
 
+/* Grade Level & Subject Switcher */
+.grade-switcher-container {
+    display: flex;
+    align-items: center;
+}
+
+.grade-select {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #EFF6FF, #F5F3FF);
+    border: 2px solid #3B82F6;
+    border-radius: 30px;
+    color: #1E40AF;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transition: all 0.2s ease;
+}
+
+.grade-select:hover {
+    border-color: #2563EB;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+    transform: translateY(-1px);
+}
+
+.grade-select optgroup {
+    font-weight: 800;
+    color: #475569;
+    background: #F8FAFC;
+}
+
+.grade-select option {
+    font-weight: 600;
+    color: #1E293B;
+    background: #FFFFFF;
+}
+
+
 
 
 
