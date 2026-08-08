@@ -474,6 +474,122 @@
         </div>
     </div>
 
+    <!-- Floating Diagram Toolbar (Zoom, Snapshot PNG, Fullscreen) -->
+    <div class="diagram-toolbar" id="diagramToolbar">
+        <button class="toolbar-btn" id="zoomInBtn" title="Phóng to sơ đồ (+)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <span class="zoom-level-text" id="zoomLevelText">100%</span>
+        <button class="toolbar-btn" id="zoomOutBtn" title="Thu nhỏ sơ đồ (-)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+        <button class="toolbar-btn" id="zoomResetBtn" title="Đặt lại góc nhìn 100%"><i class="fa-solid fa-arrows-rotate"></i></button>
+        <div class="toolbar-divider"></div>
+        <button class="toolbar-btn" id="exportPngBtn" title="Tải sơ đồ thành ảnh PNG siêu nét"><i class="fa-solid fa-camera"></i></button>
+        <button class="toolbar-btn" id="fullscreenBtn" title="Bật/Tắt chế độ Toàn màn hình"><i class="fa-solid fa-expand"></i></button>
+        <button class="toolbar-btn btn-teacher-tool" id="openAddQuestionBtn" title="Soạn thêm câu hỏi trắc nghiệm mới (Dành cho Giáo viên)"><i class="fa-solid fa-circle-question"></i></button>
+    </div>
+
+    <!-- Confetti Particle Celebration Canvas -->
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <!-- Teacher: Create New Quiz Question Modal -->
+    <div class="modal-overlay" id="createQuizQuestionModal">
+        <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-nib"></i> Soạn thêm câu hỏi trắc nghiệm mới</h3>
+                <button class="modal-close" id="createQuestionModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="questionSubjectSelect">Môn học áp dụng:</label>
+                        <select id="questionSubjectSelect" class="form-control-styled">
+                            <option value="tinhoc">💻 Môn Tin học</option>
+                            <option value="toan">📐 Môn Toán học</option>
+                            <option value="tiengviet">📖 Môn Tiếng Việt</option>
+                            <option value="tienganh">🌐 Môn Tiếng Anh</option>
+                            <option value="khoahoc">🔬 Môn Khoa học</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="correctOptionSelect">Đáp án đúng:</label>
+                        <select id="correctOptionSelect" class="form-control-styled">
+                            <option value="A">Phương án A</option>
+                            <option value="B">Phương án B</option>
+                            <option value="C">Phương án C</option>
+                            <option value="D">Phương án D</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="questionContentInput">Nội dung câu hỏi trắc nghiệm:</label>
+                    <textarea id="questionContentInput" rows="3" placeholder="vd: Đâu là thiết bị xuất dữ liệu của máy tính?"></textarea>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="optAInput">Phương án A:</label>
+                        <input type="text" id="optAInput" placeholder="vd: Màn hình">
+                    </div>
+                    <div class="form-group">
+                        <label for="optBInput">Phương án B:</label>
+                        <input type="text" id="optBInput" placeholder="vd: Bàn phím">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="optCInput">Phương án C:</label>
+                        <input type="text" id="optCInput" placeholder="vd: Chuột máy tính">
+                    </div>
+                    <div class="form-group">
+                        <label for="optDInput">Phương án D:</label>
+                        <input type="text" id="optDInput" placeholder="vd: Máy quét Scan">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="questionExpInput">Lời giải thích chi tiết khi học sinh trả lời:</label>
+                    <input type="text" id="questionExpInput" placeholder="vd: Màn hình hiển thị hình ảnh và thông tin đầu ra cho người dùng.">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-right" style="width:100%; justify-content:flex-end;">
+                    <button class="btn btn-secondary" id="createQuestionModalCancelBtn">Hủy</button>
+                    <button class="btn btn-primary" id="saveQuestionBtn">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Lưu câu hỏi lên Supabase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Video & Slides Lesson Viewer Modal -->
+    <div class="modal-overlay" id="lessonViewerModal">
+        <div class="modal-card modal-card-xl">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-play"></i> <span id="viewerModalTitle">Xem bài học trực tuyến</span></h3>
+                <button class="modal-close" id="viewerModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="viewer-container" id="viewerContainer">
+                    <!-- Dynamic iFrame or embed rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-left">
+                    <button class="btn btn-outline-success" id="viewerMarkDoneBtn">
+                        <i class="fa-solid fa-check"></i> Đánh dấu đã học xong bài này
+                    </button>
+                </div>
+                <div class="modal-footer-right">
+                    <a href="#" target="_blank" class="btn btn-secondary" id="viewerOpenTabBtn">
+                        <i class="fa-solid fa-up-right-from-square"></i> Mở tab mới
+                    </a>
+                    <button class="btn btn-primary" id="viewerCloseBtn">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -488,6 +604,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseConfig.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"></script>
     <script src="script.js"></script>
 </body>

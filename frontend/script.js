@@ -1960,5 +1960,321 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '_');
         downloadCsvFile(csv, `Bang_Diem_Trac_Nghiem_Quiz_${today}.csv`);
     });
+
+    // --- 1. Confetti Particle Animation (Fireworks for 100% Score) ---
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    let confettiCtx = confettiCanvas ? confettiCanvas.getContext('2d') : null;
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfettiCanvas() {
+        if (!confettiCanvas) return;
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function launchConfetti() {
+        if (!confettiCanvas || !confettiCtx) return;
+        confettiParticles = [];
+        const colors = ['#7C3AED', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4'];
+
+        for (let i = 0; i < 150; i++) {
+            confettiParticles.push({
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+                vx: (Math.random() - 0.5) * 16,
+                vy: (Math.random() - 0.7) * 16,
+                size: Math.random() * 8 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 10,
+                gravity: 0.25,
+                opacity: 1
+            });
+        }
+
+        if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+        animateConfetti();
+    }
+
+    function animateConfetti() {
+        if (!confettiCtx || confettiParticles.length === 0) return;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+        confettiParticles.forEach((p, idx) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.rotation += p.rotationSpeed;
+            p.opacity -= 0.008;
+
+            if (p.opacity <= 0) {
+                confettiParticles.splice(idx, 1);
+                return;
+            }
+
+            confettiCtx.save();
+            confettiCtx.translate(p.x, p.y);
+            confettiCtx.rotate((p.rotation * Math.PI) / 180);
+            confettiCtx.globalAlpha = Math.max(0, p.opacity);
+            confettiCtx.fillStyle = p.color;
+            confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            confettiCtx.restore();
+        });
+
+        if (confettiParticles.length > 0) {
+            confettiAnimId = requestAnimationFrame(animateConfetti);
+        } else {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+    }
+
+    // --- 2. Floating Diagram Toolbar (Zoom, Snapshot PNG, Fullscreen) ---
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    const zoomLevelText = document.getElementById('zoomLevelText');
+    const exportPngBtn = document.getElementById('exportPngBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const flowchartContainer = document.querySelector('.flowchart-container');
+    let currentZoom = 1.0;
+
+    function applyZoom(newZoom) {
+        currentZoom = Math.min(Math.max(newZoom, 0.5), 1.8);
+        const percent = Math.round(currentZoom * 100);
+        if (zoomLevelText) zoomLevelText.textContent = `${percent}%`;
+
+        if (flowchartContainer) {
+            flowchartContainer.style.transform = `scale(${currentZoom})`;
+            flowchartContainer.style.transformOrigin = 'top center';
+        }
+
+        setTimeout(() => {
+            lines.forEach(line => line.position());
+        }, 50);
+    }
+
+    zoomInBtn?.addEventListener('click', () => applyZoom(currentZoom + 0.1));
+    zoomOutBtn?.addEventListener('click', () => applyZoom(currentZoom - 0.1));
+    zoomResetBtn?.addEventListener('click', () => applyZoom(1.0));
+
+    fullscreenBtn?.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+            document.body.classList.add('is-fullscreen');
+            showToast('Đã bật chế độ Toàn màn hình (Nhấn F11 hoặc Esc để thoát)', 'fa-expand', 'info');
+        } else {
+            document.exitFullscreen().catch(() => {});
+            document.body.classList.remove('is-fullscreen');
+        }
+        setTimeout(() => lines.forEach(line => line.position()), 200);
+    });
+
+    exportPngBtn?.addEventListener('click', async () => {
+        if (!window.html2canvas) {
+            alert('Thư viện chụp ảnh đang tải, vui lòng thử lại sau 2 giây!');
+            return;
+        }
+
+        showToast('Đang tạo ảnh sơ đồ siêu nét, vui lòng chờ trong giây lát...', 'fa-camera', 'info');
+
+        try {
+            const originalTransform = flowchartContainer.style.transform;
+            flowchartContainer.style.transform = 'none';
+
+            const canvas = await window.html2canvas(flowchartContainer, {
+                backgroundColor: '#F8FAFC',
+                scale: 2, // 2x high resolution
+                useCORS: true,
+                logging: false
+            });
+
+            flowchartContainer.style.transform = originalTransform;
+
+            const imageURI = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = imageURI;
+            const subName = SUBJECT_TEMPLATES[currentSubjectId]?.name || 'So_Do_Bai_Hoc';
+            a.download = `${subName.replace(/\s+/g, '_')}_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            showToast('Đã xuất sơ đồ thành ảnh PNG siêu nét thành công!', 'fa-image', 'success');
+            playClickSound();
+        } catch (err) {
+            console.error('Lỗi chụp ảnh sơ đồ:', err);
+            showToast('Lỗi xuất ảnh: ' + (err.message || ''), 'fa-triangle-exclamation', 'error');
+        }
+    });
+
+    // --- 3. Teacher: Question Authoring Modal ---
+    const openAddQuestionBtn = document.getElementById('openAddQuestionBtn');
+    const createQuizQuestionModal = document.getElementById('createQuizQuestionModal');
+    const createQuestionModalCloseBtn = document.getElementById('createQuestionModalCloseBtn');
+    const createQuestionModalCancelBtn = document.getElementById('createQuestionModalCancelBtn');
+    const saveQuestionBtn = document.getElementById('saveQuestionBtn');
+    const questionSubjectSelect = document.getElementById('questionSubjectSelect');
+    const correctOptionSelect = document.getElementById('correctOptionSelect');
+    const questionContentInput = document.getElementById('questionContentInput');
+    const optAInput = document.getElementById('optAInput');
+    const optBInput = document.getElementById('optBInput');
+    const optCInput = document.getElementById('optCInput');
+    const optDInput = document.getElementById('optDInput');
+    const questionExpInput = document.getElementById('questionExpInput');
+
+    openAddQuestionBtn?.addEventListener('click', () => {
+        if (questionSubjectSelect) questionSubjectSelect.value = currentSubjectId;
+        if (questionContentInput) questionContentInput.value = '';
+        if (optAInput) optAInput.value = '';
+        if (optBInput) optBInput.value = '';
+        if (optCInput) optCInput.value = '';
+        if (optDInput) optDInput.value = '';
+        if (questionExpInput) questionExpInput.value = '';
+        createQuizQuestionModal?.classList.add('active');
+    });
+
+    createQuestionModalCloseBtn?.addEventListener('click', () => createQuizQuestionModal?.classList.remove('active'));
+    createQuestionModalCancelBtn?.addEventListener('click', () => createQuizQuestionModal?.classList.remove('active'));
+
+    saveQuestionBtn?.addEventListener('click', async () => {
+        const sub = questionSubjectSelect ? questionSubjectSelect.value : 'tinhoc';
+        const qText = questionContentInput ? questionContentInput.value.trim() : '';
+        const a = optAInput ? optAInput.value.trim() : '';
+        const b = optBInput ? optBInput.value.trim() : '';
+        const c = optCInput ? optCInput.value.trim() : '';
+        const d = optDInput ? optDInput.value.trim() : '';
+        const correct = correctOptionSelect ? correctOptionSelect.value : 'A';
+        const exp = questionExpInput ? questionExpInput.value.trim() : '';
+
+        if (!qText || !a || !b || !c || !d) {
+            alert('Vui lòng nhập đầy đủ nội dung câu hỏi và 4 phương án A, B, C, D!');
+            return;
+        }
+
+        const newQ = {
+            q: qText,
+            opts: [a, b, c, d],
+            correct: correct,
+            exp: exp || 'Đáp án chính xác theo giáo trình chuẩn.'
+        };
+
+        if (!QUIZ_BANKS[sub]) QUIZ_BANKS[sub] = [];
+        QUIZ_BANKS[sub].push(newQ);
+
+        // Sync to Supabase quiz_questions table
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('quiz_questions').insert({
+                    subject_id: sub,
+                    question_text: qText,
+                    option_a: a,
+                    option_b: b,
+                    option_c: c,
+                    option_d: d,
+                    correct_option: correct,
+                    explanation: exp
+                });
+            } catch (e) {
+                console.warn('Lỗi lưu câu hỏi lên Supabase:', e);
+            }
+        }
+
+        createQuizQuestionModal?.classList.remove('active');
+        showToast(`Đã thêm câu hỏi trắc nghiệm mới vào môn ${SUBJECT_TEMPLATES[sub]?.name || sub}!`, 'fa-circle-check', 'success');
+        playClickSound();
+    });
+
+    // --- 4. Embedded Video & Slides Lesson Viewer Modal ---
+    const lessonViewerModal = document.getElementById('lessonViewerModal');
+    const viewerModalCloseBtn = document.getElementById('viewerModalCloseBtn');
+    const viewerCloseBtn = document.getElementById('viewerCloseBtn');
+    const viewerModalTitle = document.getElementById('viewerModalTitle');
+    const viewerContainer = document.getElementById('viewerContainer');
+    const viewerMarkDoneBtn = document.getElementById('viewerMarkDoneBtn');
+    const viewerOpenTabBtn = document.getElementById('viewerOpenTabBtn');
+    let currentViewingNodeId = null;
+
+    function openLessonViewer(nodeId, title, url) {
+        currentViewingNodeId = nodeId;
+        if (viewerModalTitle) viewerModalTitle.textContent = title || 'Xem bài học trực tuyến';
+        if (viewerOpenTabBtn) {
+            viewerOpenTabBtn.href = url || '#';
+            viewerOpenTabBtn.style.display = url ? 'inline-flex' : 'none';
+        }
+
+        if (!viewerContainer) return;
+        viewerContainer.innerHTML = '';
+
+        if (!url) {
+            viewerContainer.innerHTML = `
+                <div class="viewer-placeholder">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <h4 style="color:#FFFFFF; margin:0;">Chưa gắn liên kết bài học trực tuyến</h4>
+                    <p style="margin:0; font-size:13px;">Thầy (cô) có thể nhấp đúp vào khối để dán đường dẫn YouTube, Google Slides, PowerPoint hoặc PDF.</p>
+                </div>
+            `;
+        } else {
+            // Check if YouTube
+            let youtubeMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+            if (youtubeMatch && youtubeMatch[1]) {
+                const embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1`;
+                viewerContainer.innerHTML = `<iframe src="${embedUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else if (url.includes('.pdf') || url.includes('docs.google.com') || url.includes('slides.google.com')) {
+                // Google Docs viewer / Slides
+                const embedUrl = url.includes('docs.google.com') ? url : `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`;
+                viewerContainer.innerHTML = `<iframe src="${embedUrl}"></iframe>`;
+            } else {
+                viewerContainer.innerHTML = `<iframe src="${url}"></iframe>`;
+            }
+        }
+
+        lessonViewerModal?.classList.add('active');
+        playClickSound();
+    }
+
+    viewerModalCloseBtn?.addEventListener('click', () => {
+        if (viewerContainer) viewerContainer.innerHTML = '';
+        lessonViewerModal?.classList.remove('active');
+    });
+
+    viewerCloseBtn?.addEventListener('click', () => {
+        if (viewerContainer) viewerContainer.innerHTML = '';
+        lessonViewerModal?.classList.remove('active');
+    });
+
+    viewerMarkDoneBtn?.addEventListener('click', () => {
+        if (currentViewingNodeId) {
+            toggleLessonCompletion(currentViewingNodeId, true);
+            showToast('Đã đánh dấu hoàn thành bài học này!', 'fa-circle-check', 'success');
+        }
+        if (viewerContainer) viewerContainer.innerHTML = '';
+        lessonViewerModal?.classList.remove('active');
+    });
+
+    // Update node single click to open viewer if URL exists
+    document.querySelectorAll('.node').forEach(node => {
+        node.addEventListener('click', (e) => {
+            if (e.defaultPrevented) return;
+            const url = node.dataset.url;
+            const title = node.querySelector('.node-title')?.textContent.trim() || node.id;
+            if (url) {
+                openLessonViewer(node.id, title, url);
+            }
+        });
+    });
+
+    // Update finishQuiz celebration with Confetti
+    const originalFinishQuiz = finishQuiz;
+    finishQuiz = async function() {
+        await originalFinishQuiz();
+        const percent = Math.round((quizScoreCorrect / currentQuizQuestions.length) * 100);
+        if (percent >= 70) {
+            launchConfetti();
+        }
+    };
 });
+
 
