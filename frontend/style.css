@@ -3539,6 +3539,103 @@ body.accessibility-xl-text .action-btn {
     background: #FFFFFF;
 }
 
+/* Feature Button Styles */
+.action-btn.btn-export-report {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+    color: #059669;
+}
+
+.action-btn.btn-export-report:hover {
+    background: #10B981;
+    color: #FFFFFF;
+    border-color: #059669;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.action-btn.btn-ai-essay {
+    background: #FAF5FF;
+    border-color: #DDD6FE;
+    color: #7C3AED;
+}
+
+.action-btn.btn-ai-essay:hover {
+    background: #7C3AED;
+    color: #FFFFFF;
+    border-color: #6D28D9;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+.action-btn.btn-quests {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+    color: #D97706;
+}
+
+.action-btn.btn-quests:hover {
+    background: #F59E0B;
+    color: #FFFFFF;
+    border-color: #D97706;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.action-btn.btn-live-arena {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+}
+
+.action-btn.btn-live-arena:hover {
+    background: #EF4444;
+    color: #FFFFFF;
+    border-color: #DC2626;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+/* Printable Gradebook Sheet */
+.printable-gradebook-card {
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.gradebook-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #1E3A8A;
+    padding-bottom: 12px;
+}
+
+.report-table th, .report-table td {
+    border: 1px solid #CBD5E1;
+}
+
+.report-table tr:nth-child(even) {
+    background: #F8FAFC;
+}
+
+/* Print Optimization */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printableGradebookCard, #printableGradebookCard * {
+        visibility: visible;
+    }
+    #printableGradebookCard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+    }
+}
+
+
 
 
 

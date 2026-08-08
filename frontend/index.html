@@ -98,6 +98,30 @@
                 <i class="fa-solid fa-dharmachakra"></i>
                 <span>Vòng quay may mắn</span>
             </button>
+
+            <!-- Export Gradebook PDF / Excel Button -->
+            <button class="action-btn btn-export-report" id="openExportReportBtn" title="Xuất báo cáo kết quả bài kiểm tra & Bảng điểm PDF / Excel">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Báo cáo & Bảng điểm</span>
+            </button>
+
+            <!-- AI Essay & Math Grading Assistant Button -->
+            <button class="action-btn btn-ai-essay" id="openAiEssayBtn" title="Nộp bài tự luận & Trợ lý Chấm điểm thông minh bằng AI">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Chấm điểm AI</span>
+            </button>
+
+            <!-- Daily Quests & Honor Badges Button -->
+            <button class="action-btn btn-quests" id="openDailyQuestsBtn" title="Nhiệm vụ học tập hàng ngày & Tích lũy huy hiệu danh dự">
+                <i class="fa-solid fa-award"></i>
+                <span>Nhiệm vụ & Cúp</span>
+            </button>
+
+            <!-- Live Multiplayer Quiz Arena Button -->
+            <button class="action-btn btn-live-arena" id="openLiveArenaBtn" title="Đấu trường Tri thức trực tiếp (Kahoot / Live Quiz Show)">
+                <i class="fa-solid fa-bolt-lightning"></i>
+                <span>Đấu trường Live</span>
+            </button>
         </div>
 
         <div class="top-controls-right">
@@ -1425,6 +1449,288 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="wheelModalDoneBtn" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Export Gradebook Report Modal (PDF & Excel) -->
+    <div class="modal-overlay" id="exportReportModal">
+        <div class="modal-card modal-lg" style="max-width: 860px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1E40AF, #3B82F6); color: #FFFFFF;">
+                <div class="modal-header-left">
+                    <i class="fa-solid fa-file-invoice" style="font-size: 20px;"></i>
+                    <h3 class="modal-title" style="color: #FFFFFF;">Báo cáo Kết quả Học tập & Bảng điểm (PDF / Excel)</h3>
+                </div>
+                <button class="modal-close" id="exportReportCloseBtn" style="color: #FFFFFF;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Filter Controls -->
+                <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-weight: 700; font-size: 13px; color: #475569;">Khối lớp:</label>
+                        <select id="exportGradeFilter" style="padding: 6px 12px; border-radius: 8px; border: 1.5px solid #CBD5E1; font-weight: 600;">
+                            <option value="all">🌟 Toàn bộ các khối (Lớp 1 - 12)</option>
+                            <option value="lop1">Lớp 1</option>
+                            <option value="lop2">Lớp 2</option>
+                            <option value="lop3">Lớp 3</option>
+                            <option value="lop4">Lớp 4</option>
+                            <option value="lop5" selected>Lớp 5 (Khối 5)</option>
+                            <option value="lop6">Lớp 6</option>
+                            <option value="lop7">Lớp 7</option>
+                            <option value="lop8">Lớp 8</option>
+                            <option value="lop9">Lớp 9</option>
+                            <option value="lop10">Lớp 10</option>
+                            <option value="lop11">Lớp 11</option>
+                            <option value="lop12">Lớp 12</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-success" id="downloadExcelCsvBtn" style="background: #10B981; color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-file-excel"></i> Xuất File Excel (.CSV)
+                        </button>
+                        <button class="btn btn-primary" id="printPdfGradebookBtn" style="background: #2563EB; color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-print"></i> In ấn / Xuất PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Printable Report Sheet -->
+                <div class="printable-gradebook-card" id="printableGradebookCard">
+                    <div class="gradebook-header">
+                        <div class="school-info">
+                            <div style="font-weight: 800; font-size: 14px; text-transform: uppercase; color: #1E3A8A;">TRƯỜNG TIỂU HỌC & TRUNG HỌC ANH ĐÀO AI</div>
+                            <div style="font-size: 12px; color: #64748B;">Hệ thống Quản lý Học liệu & Sơ đồ Tư duy Trực tuyến</div>
+                        </div>
+                        <div class="national-motto" style="text-align: right;">
+                            <div style="font-weight: 800; font-size: 13px;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                            <div style="font-size: 12px; font-style: italic; color: #475569;">Độc lập - Tự do - Hạnh phúc</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 16px 0;">
+                        <h2 style="font-size: 18px; font-weight: 900; color: #1E293B; margin: 0;">BẢNG TỔNG HỢP ĐIỂM ĐÁNH GIÁ & TIẾN ĐỘ HỌC TẬP</h2>
+                        <div style="font-size: 12.5px; color: #64748B; margin-top: 4px;" id="reportDateText">Ngày xuất báo cáo: 08/08/2026</div>
+                    </div>
+
+                    <div class="report-table-responsive" style="max-height: 280px; overflow-y: auto; border: 1px solid #E2E8F0; border-radius: 8px;">
+                        <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+                            <thead>
+                                <tr style="background: #F1F5F9; border-bottom: 2px solid #CBD5E1; color: #334155;">
+                                    <th style="padding: 8px 10px;">STT</th>
+                                    <th style="padding: 8px 10px;">Họ và Tên Học sinh</th>
+                                    <th style="padding: 8px 10px;">Lớp</th>
+                                    <th style="padding: 8px 10px;">Tiến độ bài học</th>
+                                    <th style="padding: 8px 10px;">Điểm số (Thang 10)</th>
+                                    <th style="padding: 8px 10px;">Xếp loại</th>
+                                    <th style="padding: 8px 10px;">Nhận xét giáo viên</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Teacher Signature Box -->
+                    <div class="gradebook-footer" style="display: flex; justify-content: space-between; margin-top: 24px; padding: 0 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #64748B;">BAN GIÁM HIỆU</div>
+                            <div style="font-weight: 700; font-size: 13px; margin-top: 30px;">(Đã ký duyệt)</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #64748B;">GIÁO VIÊN CHỦ NHIỆM</div>
+                            <div style="font-weight: 800; font-size: 13px; color: #1E40AF; margin-top: 30px;">Cô Giáo Anh Đào</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 12px 20px; display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary" id="exportReportDoneBtn">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. AI Essay & Solution Grading Modal -->
+    <div class="modal-overlay" id="aiEssayModal">
+        <div class="modal-card modal-lg" style="max-width: 780px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #7C3AED, #9333EA); color: #FFFFFF;">
+                <div class="modal-header-left">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 20px;"></i>
+                    <h3 class="modal-title" style="color: #FFFFFF;">Trợ lý Chấm điểm AI Tự luận & Lời giải Toán</h3>
+                </div>
+                <button class="modal-close" id="aiEssayCloseBtn" style="color: #FFFFFF;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 14px;">
+                    Nhập bài làm văn miêu tả/nghị luận hoặc các bước giải toán của học sinh để AI chấm điểm theo thang điểm 10, phân tích ưu điểm và góp ý sửa lỗi chi tiết:
+                </p>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; font-size: 13px;">Tên bài tập / Đề bài:</label>
+                    <input type="text" id="aiEssayTitleInput" placeholder="Ví dụ: Tả cảnh biển quê hương em buổi sáng sớm hoặc Giải bài toán tính vận tốc" value="Bài văn tả người mẹ thân yêu của em">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; font-size: 13px;">Nội dung bài làm của học sinh:</label>
+                    <textarea id="aiEssayContentInput" rows="6" style="width: 100%; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 10px; font-family: 'Inter', sans-serif; font-size: 13.5px;" placeholder="Dán hoặc gõ nội dung bài làm vào đây...">Mẹ của em là người phụ nữ hiền từ và đảm đang nhất. Mẹ có mái tóc đen mượt mà và đôi mắt luôn ngập tràn yêu thương khi nhìn em. Mỗi buổi sáng, mẹ dậy rất sớm để nấu bữa cơm thơm ngon và chuẩn bị sách vở cho em đến trường. Bàn tay mẹ có những vết chai sạn vì năm tháng vất vả nuôi em khôn lớn. Em tự hứa sẽ học thật giỏi để mẹ luôn mỉm cười tự hào.</textarea>
+                </div>
+
+                <button class="btn btn-primary" id="startAiGradingBtn" style="width: 100%; background: linear-gradient(135deg, #7C3AED, #4F46E5); color: #FFFFFF; border: none; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
+                    <i class="fa-solid fa-sparkles"></i> BẮT ĐẦU CHẤM ĐIỂM BẰNG AI GEMINI
+                </button>
+
+                <!-- AI Grading Result Card -->
+                <div class="ai-grade-result-card" id="aiGradeResultCard" style="display: none; margin-top: 18px; background: #F8FAFC; border: 2px solid #DDD6FE; border-radius: 14px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 10px;">
+                        <div>
+                            <span style="font-weight: 800; color: #1E293B; font-size: 15px;">KẾT QUẢ ĐÁNH GIÁ CỦA AI:</span>
+                        </div>
+                        <div class="ai-score-badge" id="aiScoreBadge" style="background: #10B981; color: #FFFFFF; font-weight: 900; font-size: 18px; padding: 4px 14px; border-radius: 20px;">
+                            9.5 / 10 Điểm
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                        <div><strong style="color: #059669;">🌟 Ưu điểm nổi bật:</strong> <span id="aiGradeStrengths">Bài viết giàu cảm xúc, sử dụng từ ngữ gợi hình (mượt mà, chai sạn) và cấu trúc câu mạch lạc.</span></div>
+                        <div><strong style="color: #D97706;">💡 Gợi ý nâng cao:</strong> <span id="aiGradeImprovements">Có thể thêm vào một kỷ niệm cụ thể giữa hai mẹ con (ví dụ một đêm mẹ chăm sóc khi em bị sốt) để bài văn thêm phần sâu sắc.</span></div>
+                        <div><strong style="color: #7C3AED;">💌 Nhận xét của Cô Giáo:</strong> <span id="aiGradeTeacherWords">Bài văn rất xúc động, cô khen ngợi tinh thần hiếu thảo và năng khiếu ngôn ngữ của em!</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 12px 20px;">
+                <button class="btn btn-secondary" id="aiEssayDoneBtn" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Daily Quests & Honor Badges Modal -->
+    <div class="modal-overlay" id="dailyQuestsModal">
+        <div class="modal-card" style="max-width: 680px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #FFFFFF;">
+                <div class="modal-header-left">
+                    <i class="fa-solid fa-trophy" style="font-size: 20px;"></i>
+                    <h3 class="modal-title" style="color: #FFFFFF;">Nhiệm vụ Hàng ngày & Huy hiệu Danh dự</h3>
+                </div>
+                <button class="modal-close" id="dailyQuestsCloseBtn" style="color: #FFFFFF;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Streak Banner -->
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFBEB; border: 1.5px solid #FCD34D; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 28px;">🔥</span>
+                        <div>
+                            <div style="font-weight: 800; font-size: 14px; color: #92400E;">Chuỗi học tập: 5 Ngày Liên tiếp!</div>
+                            <div style="font-size: 11.5px; color: #B45309;">Hãy hoàn thành nhiệm vụ để giữ vững chuỗi ngọn lửa chăm chỉ</div>
+                        </div>
+                    </div>
+                    <div style="font-weight: 800; font-size: 16px; color: #D97706;" id="questTotalXp">180 XP</div>
+                </div>
+
+                <!-- Quest List -->
+                <div style="font-weight: 800; font-size: 13.5px; color: #1E293B; margin-bottom: 10px;">🎯 NHIỆM VỤ HÔM NAY:</div>
+                <div class="quests-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="quest-item" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #1E293B;">📝 Hoàn thành 1 bài kiểm tra trắc nghiệm</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Thưởng +50 XP kinh nghiệm</div>
+                        </div>
+                        <button class="btn-claim-quest" data-xp="50" style="background: #10B981; color: #FFFFFF; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                            Nhận +50 XP
+                        </button>
+                    </div>
+
+                    <div class="quest-item" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #1E293B;">🧩 Hoàn tất 1 ván ghép thẻ Flashcard</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Thưởng +30 XP kinh nghiệm</div>
+                        </div>
+                        <button class="btn-claim-quest" data-xp="30" style="background: #10B981; color: #FFFFFF; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                            Nhận +30 XP
+                        </button>
+                    </div>
+
+                    <div class="quest-item" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #1E293B;">🔍 Tìm kiếm bài học mới với Omnisearch (Ctrl+K)</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Thưởng +20 XP kinh nghiệm</div>
+                        </div>
+                        <button class="btn-claim-quest" data-xp="20" style="background: #10B981; color: #FFFFFF; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                            Nhận +20 XP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Badges Gallery -->
+                <div style="font-weight: 800; font-size: 13.5px; color: #1E293B; margin-top: 18px; margin-bottom: 10px;">🏆 BỘ SƯU TẬP HUY HIỆU DANH DỰ:</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
+                    <div style="background: #F1F5F9; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1;">
+                        <span style="font-size: 26px;">🏅</span>
+                        <div style="font-weight: 700; font-size: 11px; margin-top: 4px;">Thợ Săn Điểm 10</div>
+                    </div>
+                    <div style="background: #F1F5F9; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1;">
+                        <span style="font-size: 26px;">⚡</span>
+                        <div style="font-weight: 700; font-size: 11px; margin-top: 4px;">Tốc Độ Thần Sầu</div>
+                    </div>
+                    <div style="background: #F1F5F9; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1;">
+                        <span style="font-size: 26px;">📚</span>
+                        <div style="font-weight: 700; font-size: 11px; margin-top: 4px;">Nhà Bác Học Nhí</div>
+                    </div>
+                    <div style="background: #F1F5F9; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1;">
+                        <span style="font-size: 26px;">👑</span>
+                        <div style="font-weight: 700; font-size: 11px; margin-top: 4px;">Thủ Khoa Lớp 5A</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 12px 20px;">
+                <button class="btn btn-secondary" id="dailyQuestsDoneBtn" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Live Multiplayer Quiz Arena Modal -->
+    <div class="modal-overlay" id="liveArenaModal">
+        <div class="modal-card" style="max-width: 680px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: #FFFFFF;">
+                <div class="modal-header-left">
+                    <i class="fa-solid fa-bolt-lightning" style="font-size: 20px;"></i>
+                    <h3 class="modal-title" style="color: #FFFFFF;">Đấu trường Tri thức Trực tiếp (Live Quiz Arena)</h3>
+                </div>
+                <button class="modal-close" id="liveArenaCloseBtn" style="color: #FFFFFF;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; text-align: center;">
+                <div style="background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 14px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 12px; font-weight: 800; color: #991B1B; letter-spacing: 1px;">MÃ PHÒNG THI ĐẤU (PIN CODE):</div>
+                    <div style="font-size: 32px; font-weight: 900; color: #DC2626; letter-spacing: 4px; margin: 6px 0;">889922</div>
+                    <div style="font-size: 12px; color: #7F1D1D;">Đang có <span id="arenaPlayerCount" style="font-weight: 800;">14 bạn</span> học sinh sẵn sàng tranh tài!</div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;">
+                    <button class="btn btn-danger" id="startArenaMatchBtn" style="background: #DC2626; color: #FFFFFF; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);">
+                        <i class="fa-solid fa-flag-checkered"></i> BẮT ĐẦU VÒNG ĐẤU TOÀN LỚP
+                    </button>
+                </div>
+
+                <!-- Live Leaderboard -->
+                <div style="text-align: left; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px;">
+                    <div style="font-weight: 800; font-size: 13px; color: #1E293B; margin-bottom: 8px;">🏆 BẢNG XẾP HẠNG THỜI GIAN THỰC:</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+                        <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: #FEF3C7; border-radius: 8px; font-weight: 700; color: #92400E;">
+                            <span>🥇 1. Đào Thùy Anh (Lớp 5A)</span>
+                            <span>1.250 Điểm</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: #F1F5F9; border-radius: 8px; font-weight: 600; color: #334155;">
+                            <span>🥈 2. Trần Minh Đức (Lớp 5A)</span>
+                            <span>1.100 Điểm</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: #F1F5F9; border-radius: 8px; font-weight: 600; color: #334155;">
+                            <span>🥉 3. Nguyễn Hoàng Nam (Lớp 5A)</span>
+                            <span>980 Điểm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 12px 20px;">
+                <button class="btn btn-secondary" id="liveArenaDoneBtn" style="width: 100%;">Đóng</button>
             </div>
         </div>
     </div>

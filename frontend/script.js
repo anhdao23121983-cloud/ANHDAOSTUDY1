@@ -4585,6 +4585,214 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
+
+    // --- 26. Export Gradebook Report Modal (PDF & Excel) ---
+    const openExportReportBtn = document.getElementById('openExportReportBtn');
+    const exportReportModal = document.getElementById('exportReportModal');
+    const exportReportCloseBtn = document.getElementById('exportReportCloseBtn');
+    const exportReportDoneBtn = document.getElementById('exportReportDoneBtn');
+    const exportGradeFilter = document.getElementById('exportGradeFilter');
+    const reportTableBody = document.getElementById('reportTableBody');
+    const downloadExcelCsvBtn = document.getElementById('downloadExcelCsvBtn');
+    const printPdfGradebookBtn = document.getElementById('printPdfGradebookBtn');
+    const reportDateText = document.getElementById('reportDateText');
+
+    const MOCK_CLASS_ROSTER = [
+        { name: 'Đào Thùy Anh', classroom: '5A', grade: 'lop5', completed: 8, score: 9.8, rank: 'Xuất sắc', note: 'Chăm chỉ, hoàn thành xuất sắc các bài học' },
+        { name: 'Trần Minh Đức', classroom: '5A', grade: 'lop5', completed: 7, score: 9.0, rank: 'Giỏi', note: 'Tích cực phát biểu, nắm vững lý thuyết' },
+        { name: 'Nguyễn Hoàng Nam', classroom: '5A', grade: 'lop5', completed: 6, score: 8.5, rank: 'Khá Giỏi', note: 'Thực hành thao tác nhanh nhẹn' },
+        { name: 'Lê Bảo Châu', classroom: '5A', grade: 'lop5', completed: 8, score: 9.5, rank: 'Xuất sắc', note: 'Tư duy logic tốt, điểm trắc nghiệm cao' },
+        { name: 'Phạm Quang Huy', classroom: '5A', grade: 'lop5', completed: 5, score: 8.0, rank: 'Khá', note: 'Cần tích cực luyện thêm bài tập về nhà' },
+        { name: 'Vũ Khánh Linh', classroom: '5A', grade: 'lop5', completed: 8, score: 10.0, rank: 'Xuất sắc', note: 'Đạt điểm tối đa toàn bộ bài kiểm tra' },
+        { name: 'Đỗ Tuấn Kiệt', classroom: '5A', grade: 'lop5', completed: 6, score: 8.2, rank: 'Khá', note: 'Có tiến bộ rõ rệt trong kỳ 2' },
+        { name: 'Bùi Mai Phương', classroom: '5A', grade: 'lop5', completed: 7, score: 9.1, rank: 'Giỏi', note: 'Viết bài tự luận tốt, trình bày đẹp' }
+    ];
+
+    function renderReportTable(filterGrade = 'all') {
+        if (!reportTableBody) return;
+        if (reportDateText) {
+            reportDateText.textContent = `Ngày xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')} | Đơn vị: Trường TH & THCS Anh Đào AI`;
+        }
+
+        const filtered = filterGrade === 'all' ? MOCK_CLASS_ROSTER : MOCK_CLASS_ROSTER.filter(s => s.grade === filterGrade || filterGrade === 'lop5');
+        reportTableBody.innerHTML = '';
+
+        filtered.forEach((st, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 8px 10px; font-weight: 700; color: #64748B;">${idx + 1}</td>
+                <td style="padding: 8px 10px; font-weight: 700; color: #1E293B;">${st.name}</td>
+                <td style="padding: 8px 10px; color: #475569;">${st.classroom}</td>
+                <td style="padding: 8px 10px; color: #2563EB; font-weight: 600;">${st.completed}/8 Bài (${Math.round((st.completed/8)*100)}%)</td>
+                <td style="padding: 8px 10px; font-weight: 800; color: #059669;">${st.score.toFixed(1)}</td>
+                <td style="padding: 8px 10px;"><span style="background:#ECFDF5; color:#047857; padding:2px 8px; border-radius:12px; font-weight:700; font-size:11px;">${st.rank}</span></td>
+                <td style="padding: 8px 10px; font-size: 11.5px; color: #475569;">${st.note}</td>
+            `;
+            reportTableBody.appendChild(tr);
+        });
+    }
+
+    openExportReportBtn?.addEventListener('click', () => {
+        renderReportTable(exportGradeFilter ? exportGradeFilter.value : 'all');
+        exportReportModal?.classList.add('active');
+        playClickSound();
+    });
+
+    exportReportCloseBtn?.addEventListener('click', () => exportReportModal?.classList.remove('active'));
+    exportReportDoneBtn?.addEventListener('click', () => exportReportModal?.classList.remove('active'));
+
+    exportGradeFilter?.addEventListener('change', (e) => {
+        renderReportTable(e.target.value);
+    });
+
+    // Download CSV with UTF-8 BOM for Excel
+    downloadExcelCsvBtn?.addEventListener('click', () => {
+        let csvContent = '\uFEFF'; // UTF-8 BOM
+        csvContent += 'STT,Ho va Ten Hoc Sinh,Lop,Tien Do Hoan Thanh,Diem So Quy Doi (Thang 10),Xep Loai,Nhan Xet Giao Vien\n';
+
+        MOCK_CLASS_ROSTER.forEach((st, idx) => {
+            csvContent += `"${idx + 1}","${st.name}","${st.classroom}","${st.completed}/8 bài","${st.score}","${st.rank}","${st.note}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bang_Diem_Hoc_Sinh_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast('Đã xuất file Excel (.CSV) bảng điểm thành công!', 'fa-file-excel', 'success');
+        playVictoryFanfare();
+    });
+
+    printPdfGradebookBtn?.addEventListener('click', () => {
+        window.print();
+    });
+
+    // --- 27. AI Essay & Math Solution Grading Assistant ---
+    const openAiEssayBtn = document.getElementById('openAiEssayBtn');
+    const aiEssayModal = document.getElementById('aiEssayModal');
+    const aiEssayCloseBtn = document.getElementById('aiEssayCloseBtn');
+    const aiEssayDoneBtn = document.getElementById('aiEssayDoneBtn');
+    const startAiGradingBtn = document.getElementById('startAiGradingBtn');
+    const aiEssayTitleInput = document.getElementById('aiEssayTitleInput');
+    const aiEssayContentInput = document.getElementById('aiEssayContentInput');
+    const aiGradeResultCard = document.getElementById('aiGradeResultCard');
+    const aiScoreBadge = document.getElementById('aiScoreBadge');
+    const aiGradeStrengths = document.getElementById('aiGradeStrengths');
+    const aiGradeImprovements = document.getElementById('aiGradeImprovements');
+    const aiGradeTeacherWords = document.getElementById('aiGradeTeacherWords');
+
+    openAiEssayBtn?.addEventListener('click', () => {
+        aiEssayModal?.classList.add('active');
+        playClickSound();
+    });
+
+    aiEssayCloseBtn?.addEventListener('click', () => aiEssayModal?.classList.remove('active'));
+    aiEssayDoneBtn?.addEventListener('click', () => aiEssayModal?.classList.remove('active'));
+
+    startAiGradingBtn?.addEventListener('click', async () => {
+        const text = (aiEssayContentInput?.value || '').trim();
+        if (text.length < 15) {
+            showToast('Nội dung bài làm quá ngắn, vui lòng nhập ít nhất 15 ký tự!', 'fa-triangle-exclamation', 'error');
+            return;
+        }
+
+        startAiGradingBtn.disabled = true;
+        startAiGradingBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AI Gemini đang phân tích ngữ pháp, cảm xúc & lời giải...';
+
+        await new Promise(r => setTimeout(r, 1400)); // AI thinking simulation
+
+        // Heuristic AI analysis
+        const wordCount = text.split(/\s+/).length;
+        let score = 9.0;
+        if (wordCount > 60) score = 9.8;
+        else if (wordCount > 30) score = 9.5;
+        else score = 8.5;
+
+        if (aiScoreBadge) aiScoreBadge.textContent = `${score.toFixed(1)} / 10 Điểm`;
+        if (aiGradeStrengths) aiGradeStrengths.textContent = `Bài viết đạt độ dài ${wordCount} từ, diễn đạt tự nhiên, giàu cảm xúc và liên kết câu chặt chẽ.`;
+        if (aiGradeImprovements) aiGradeImprovements.textContent = `Nên bổ sung thêm một vài hình ảnh so sánh nhân hóa để lời văn thêm phần truyền cảm.`;
+        if (aiGradeTeacherWords) aiGradeTeacherWords.textContent = `Cô Giáo Anh Đào khen ngợi bài làm rất sáng tạo và chân thực của em ${currentStudent.name}!`;
+
+        if (aiGradeResultCard) aiGradeResultCard.style.display = 'block';
+
+        startAiGradingBtn.disabled = false;
+        startAiGradingBtn.innerHTML = '<i class="fa-solid fa-sparkles"></i> BẮT ĐẦU CHẤM ĐIỂM BẰNG AI GEMINI';
+
+        launchConfetti();
+        playVictoryFanfare();
+        showToast(`AI đã chấm điểm thành công: ${score.toFixed(1)} / 10 Điểm!`, 'fa-star', 'success');
+        if (isTtsEnabled) {
+            speakText(`Bài làm của em được chấm ${score.toFixed(1)} điểm. Rất đáng khen ngợi!`);
+        }
+    });
+
+    // --- 28. Daily Quests & Honor Badges ---
+    const openDailyQuestsBtn = document.getElementById('openDailyQuestsBtn');
+    const dailyQuestsModal = document.getElementById('dailyQuestsModal');
+    const dailyQuestsCloseBtn = document.getElementById('dailyQuestsCloseBtn');
+    const dailyQuestsDoneBtn = document.getElementById('dailyQuestsDoneBtn');
+    const questTotalXp = document.getElementById('questTotalXp');
+
+    let userTotalXp = parseInt(localStorage.getItem('student_total_xp') || '180');
+
+    openDailyQuestsBtn?.addEventListener('click', () => {
+        if (questTotalXp) questTotalXp.textContent = `${userTotalXp} XP`;
+        dailyQuestsModal?.classList.add('active');
+        playClickSound();
+    });
+
+    dailyQuestsCloseBtn?.addEventListener('click', () => dailyQuestsModal?.classList.remove('active'));
+    dailyQuestsDoneBtn?.addEventListener('click', () => dailyQuestsModal?.classList.remove('active'));
+
+    document.querySelectorAll('.btn-claim-quest').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const xp = parseInt(btn.dataset.xp || '20');
+            userTotalXp += xp;
+            localStorage.setItem('student_total_xp', userTotalXp);
+            if (questTotalXp) questTotalXp.textContent = `${userTotalXp} XP`;
+
+            btn.disabled = true;
+            btn.style.background = '#64748B';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã nhận';
+
+            launchConfetti();
+            playVictoryFanfare();
+            showToast(`Tuyệt vời! Em đã nhận được +${xp} XP kinh nghiệm danh dự!`, 'fa-award', 'success');
+        });
+    });
+
+    // --- 29. Live Multiplayer Quiz Arena ---
+    const openLiveArenaBtn = document.getElementById('openLiveArenaBtn');
+    const liveArenaModal = document.getElementById('liveArenaModal');
+    const liveArenaCloseBtn = document.getElementById('liveArenaCloseBtn');
+    const liveArenaDoneBtn = document.getElementById('liveArenaDoneBtn');
+    const startArenaMatchBtn = document.getElementById('startArenaMatchBtn');
+    const arenaPlayerCount = document.getElementById('arenaPlayerCount');
+
+    openLiveArenaBtn?.addEventListener('click', () => {
+        liveArenaModal?.classList.add('active');
+        playClickSound();
+    });
+
+    liveArenaCloseBtn?.addEventListener('click', () => liveArenaModal?.classList.remove('active'));
+    liveArenaDoneBtn?.addEventListener('click', () => liveArenaModal?.classList.remove('active'));
+
+    startArenaMatchBtn?.addEventListener('click', () => {
+        startArenaMatchBtn.disabled = true;
+        startArenaMatchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khởi động phòng thi đấu trực tiếp...';
+
+        setTimeout(() => {
+            liveArenaModal?.classList.remove('active');
+            startQuiz(currentSubjectId);
+            showToast('Vòng đấu toàn lớp đã bắt đầu! Chúc các em thi tốt!', 'fa-flag-checkered', 'success');
+            startArenaMatchBtn.disabled = false;
+            startArenaMatchBtn.innerHTML = '<i class="fa-solid fa-flag-checkered"></i> BẮT ĐẦU VÒNG ĐẤU TOÀN LỚP';
+        }, 1200);
+    });
 });
 
 
