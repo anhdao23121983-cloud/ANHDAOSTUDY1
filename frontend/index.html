@@ -1252,9 +1252,28 @@
                             <button type="button" class="post-tag-btn" data-tag="🏆 Khen thưởng">🏆 Khen thưởng</button>
                             <button type="button" class="post-tag-btn" data-tag="💡 Mẹo học hay">💡 Mẹo hay</button>
                         </div>
-                        <button class="btn btn-primary" id="publishPostBtn">
-                            <i class="fa-solid fa-paper-plane"></i> Đăng bài
-                        </button>
+                        <div class="post-action-buttons">
+                            <!-- Image File Attachment -->
+                            <label class="btn-attach-media" title="Đính kèm ảnh bài tập hoặc tài liệu học tập">
+                                <i class="fa-solid fa-image"></i> <span>Ảnh bài tập</span>
+                                <input type="file" id="postImageFileInput" accept="image/*" style="display: none;">
+                            </label>
+
+                            <!-- Whiteboard Drawing Snapshot Attachment -->
+                            <button type="button" class="btn-attach-media" id="attachWhiteboardBtn" title="Chụp bảng vẽ sơ đồ đính kèm vào bài">
+                                <i class="fa-solid fa-paintbrush"></i> <span>Nét vẽ</span>
+                            </button>
+
+                            <button class="btn btn-primary" id="publishPostBtn">
+                                <i class="fa-solid fa-paper-plane"></i> Đăng bài
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Attached Image Preview Container -->
+                    <div class="post-attachment-preview" id="postImagePreviewContainer" style="display: none;">
+                        <img src="" id="postImagePreviewImg" alt="Preview">
+                        <button type="button" class="btn-remove-attachment" id="removeAttachmentBtn" title="Xóa ảnh đính kèm">&times;</button>
                     </div>
                 </div>
 

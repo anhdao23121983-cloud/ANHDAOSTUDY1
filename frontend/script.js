@@ -3768,6 +3768,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="post-tag-chip">${post.badge_tag || '📢 Thông báo'}</span>
                 </div>
                 <div class="post-text-content">${post.content}</div>
+                ${post.attachment_url ? `<img src="${post.attachment_url}" class="post-attached-img" alt="Ảnh bài tập / Sơ đồ đính kèm" title="Bấm để xem ảnh lớn">` : ''}
                 <div class="post-actions-bar">
                     <button class="btn-post-act btn-like-post" data-id="${post.id}">
                         <i class="fa-solid fa-heart" style="color:#EF4444;"></i> <span>${post.likes_count || 0} Yêu thích</span>
@@ -3852,11 +3853,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Media Attachments in Class Feed
+    const postImageFileInput = document.getElementById('postImageFileInput');
+    const attachWhiteboardBtn = document.getElementById('attachWhiteboardBtn');
+    const postImagePreviewContainer = document.getElementById('postImagePreviewContainer');
+    const postImagePreviewImg = document.getElementById('postImagePreviewImg');
+    const removeAttachmentBtn = document.getElementById('removeAttachmentBtn');
+    let attachedMediaDataUrl = null;
+
+    postImageFileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                attachedMediaDataUrl = evt.target.result;
+                if (postImagePreviewImg) postImagePreviewImg.src = attachedMediaDataUrl;
+                if (postImagePreviewContainer) postImagePreviewContainer.style.display = 'inline-block';
+                showToast('Đã đính kèm ảnh bài tập thành công!', 'fa-image', 'info');
+                playClickSound();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    attachWhiteboardBtn?.addEventListener('click', () => {
+        if (whiteboardCanvas) {
+            attachedMediaDataUrl = whiteboardCanvas.toDataURL('image/png');
+            if (postImagePreviewImg) postImagePreviewImg.src = attachedMediaDataUrl;
+            if (postImagePreviewContainer) postImagePreviewContainer.style.display = 'inline-block';
+            showToast('Đã dán nét vẽ sơ đồ hiện tại vào bài đăng!', 'fa-paintbrush', 'success');
+            playClickSound();
+        }
+    });
+
+    removeAttachmentBtn?.addEventListener('click', () => {
+        attachedMediaDataUrl = null;
+        if (postImagePreviewContainer) postImagePreviewContainer.style.display = 'none';
+        if (postImageFileInput) postImageFileInput.value = '';
+        showToast('Đã gỡ tệp đính kèm.', 'fa-trash', 'info');
+        playClickSound();
+    });
+
     // Publish New Post
     publishPostBtn?.addEventListener('click', async () => {
         const text = (feedPostContent?.value || '').trim();
-        if (!text) {
-            showToast('Vui lòng nhập nội dung bài đăng!', 'fa-triangle-exclamation', 'error');
+        if (!text && !attachedMediaDataUrl) {
+            showToast('Vui lòng nhập nội dung hoặc đính kèm ảnh bài tập!', 'fa-triangle-exclamation', 'error');
             return;
         }
 
@@ -3874,7 +3916,8 @@ document.addEventListener('DOMContentLoaded', () => {
             author_role: authorRole,
             classroom: currentStudent.classroom || '5A',
             badge_tag: currentFeedTag,
-            content: text,
+            content: text || 'Bài tập đính kèm:',
+            attachment_url: attachedMediaDataUrl || null,
             likes_count: 1,
             created_at: new Date().toISOString()
         };
@@ -3897,6 +3940,10 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('anhdao_class_posts', JSON.stringify(localPosts));
 
         if (feedPostContent) feedPostContent.value = '';
+        attachedMediaDataUrl = null;
+        if (postImagePreviewContainer) postImagePreviewContainer.style.display = 'none';
+        if (postImageFileInput) postImageFileInput.value = '';
+
         if (publishPostBtn) {
             publishPostBtn.disabled = false;
             publishPostBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Đăng bài';
