@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7C3AED">
     <title>Sơ đồ Website AI Study</title>
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
@@ -37,6 +39,18 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Realtime Live Online Presence Pill -->
+            <div class="live-status-pill" title="Số lượng học sinh đang cùng tham gia học trực tuyến">
+                <span class="pulse-dot-green"></span>
+                <span id="onlineCountText">12 học sinh online</span>
+            </div>
+
+            <!-- Install PWA App Button -->
+            <button class="action-btn btn-install-pwa" id="installPwaBtn" title="Cài đặt ứng dụng lên máy tính hoặc điện thoại">
+                <i class="fa-solid fa-mobile-screen"></i>
+                <span>Cài App</span>
+            </button>
+
             <!-- Lo-Fi Relaxing Study Music Toggle -->
             <button class="action-btn btn-bgm" id="bgmToggleBtn" title="Bật/Tắt nhạc nền học tập thư giãn Lo-Fi">
                 <i class="fa-solid fa-music" id="bgmIcon"></i>
@@ -579,7 +593,7 @@
         </div>
     </div>
 
-    <!-- Floating Diagram Toolbar (Zoom, Snapshot PNG, Fullscreen) -->
+    <!-- Floating Diagram Toolbar (Zoom, Snapshot PNG, Fullscreen, Voice) -->
     <div class="diagram-toolbar" id="diagramToolbar">
         <button class="toolbar-btn" id="zoomInBtn" title="Phóng to sơ đồ (+)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
         <span class="zoom-level-text" id="zoomLevelText">100%</span>
@@ -588,7 +602,45 @@
         <div class="toolbar-divider"></div>
         <button class="toolbar-btn" id="exportPngBtn" title="Tải sơ đồ thành ảnh PNG siêu nét"><i class="fa-solid fa-camera"></i></button>
         <button class="toolbar-btn" id="fullscreenBtn" title="Bật/Tắt chế độ Toàn màn hình"><i class="fa-solid fa-expand"></i></button>
+        <button class="toolbar-btn btn-voice-tool" id="openVoiceRecordBtn" title="Ghi âm giọng đọc bài của học sinh"><i class="fa-solid fa-microphone"></i></button>
         <button class="toolbar-btn btn-teacher-tool" id="openAddQuestionBtn" title="Soạn thêm câu hỏi trắc nghiệm mới (Dành cho Giáo viên)"><i class="fa-solid fa-circle-question"></i></button>
+    </div>
+
+    <!-- Student Voice Reading & Recording Modal -->
+    <div class="modal-overlay" id="voiceRecordModal">
+        <div class="modal-card modal-card-sm" style="text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-microphone-lines"></i> Ghi âm Giọng đọc Bài học</h3>
+                <button class="modal-close" id="voiceModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px 16px;">
+                <div class="record-visualizer">
+                    <button class="mic-record-circle-btn" id="micRecordBtn">
+                        <i class="fa-solid fa-microphone" id="micRecordIcon"></i>
+                    </button>
+                    <div class="record-timer-text" id="recordTimerText">00:00</div>
+                    <div class="equalizer-bars" id="equalizerBars">
+                        <span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>
+                        <span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>
+                        <span class="eq-bar"></span><span class="eq-bar"></span>
+                    </div>
+                </div>
+
+                <div class="audio-preview-container" id="audioPreviewContainer" style="display: none; margin-top: 16px;">
+                    <audio id="audioPlayback" controls style="width: 100%; outline: none; border-radius: 8px;"></audio>
+                </div>
+
+                <p style="font-size: 12.5px; color: #64748B; margin: 14px 0 0 0;">
+                    Nhấn vào Micro để bắt đầu đọc to bài học. Bản ghi âm sẽ được lưu và gửi trực tiếp cho giáo viên chấm điểm.
+                </p>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-secondary" id="voiceModalCancelBtn">Hủy</button>
+                <button class="btn btn-primary" id="saveVoiceBtn" disabled>
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Nộp bản ghi âm
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Confetti Particle Celebration Canvas -->

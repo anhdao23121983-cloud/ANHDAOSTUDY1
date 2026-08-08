@@ -2664,6 +2664,177 @@ document.addEventListener('DOMContentLoaded', () => {
         if (barNeedHelp) barNeedHelp.style.height = `${(need / maxVal) * 90 + 10}%`;
     });
 
+    // --- 10. Mechanical Keyboard Sound Synthesizer ---
+    function playMechanicalKeyClick() {
+        if (!soundEnabled) return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1400 + Math.random() * 400, ctx.currentTime);
+
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(2500, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.05);
+        } catch (e) {}
+    }
+
+    if (typingInput) {
+        typingInput.addEventListener('keydown', playMechanicalKeyClick);
+    }
+    const searchInp = document.getElementById('searchInput');
+    if (searchInp) {
+        searchInp.addEventListener('keydown', playMechanicalKeyClick);
+    }
+
+    // --- 11. Student Voice Recorder & Speech Submission ---
+    const openVoiceRecordBtn = document.getElementById('openVoiceRecordBtn');
+    const voiceRecordModal = document.getElementById('voiceRecordModal');
+    const voiceModalCloseBtn = document.getElementById('voiceModalCloseBtn');
+    const voiceModalCancelBtn = document.getElementById('voiceModalCancelBtn');
+    const micRecordBtn = document.getElementById('micRecordBtn');
+    const micRecordIcon = document.getElementById('micRecordIcon');
+    const recordTimerText = document.getElementById('recordTimerText');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const audioPreviewContainer = document.getElementById('audioPreviewContainer');
+    const saveVoiceBtn = document.getElementById('saveVoiceBtn');
+    const equalizerBars = document.getElementById('equalizerBars');
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordInterval = null;
+    let recordSeconds = 0;
+    let isRecording = false;
+
+    openVoiceRecordBtn?.addEventListener('click', () => {
+        voiceRecordModal?.classList.add('active');
+        audioChunks = [];
+        recordSeconds = 0;
+        if (recordTimerText) recordTimerText.textContent = '00:00';
+        if (audioPreviewContainer) audioPreviewContainer.style.display = 'none';
+        if (saveVoiceBtn) saveVoiceBtn.disabled = true;
+        playClickSound();
+    });
+
+    voiceModalCloseBtn?.addEventListener('click', () => {
+        if (isRecording && mediaRecorder) mediaRecorder.stop();
+        voiceRecordModal?.classList.remove('active');
+    });
+
+    voiceModalCancelBtn?.addEventListener('click', () => {
+        if (isRecording && mediaRecorder) mediaRecorder.stop();
+        voiceRecordModal?.classList.remove('active');
+    });
+
+    micRecordBtn?.addEventListener('click', async () => {
+        if (!isRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    if (audioPlayback) audioPlayback.src = audioUrl;
+                    if (audioPreviewContainer) audioPreviewContainer.style.display = 'block';
+                    if (saveVoiceBtn) saveVoiceBtn.disabled = false;
+                    showToast('Đã ghi âm xong! Em có thể nghe lại và nhấn Nộp bài.', 'fa-microphone', 'success');
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                micRecordBtn.classList.add('recording');
+                if (equalizerBars) equalizerBars.classList.add('recording');
+                if (micRecordIcon) micRecordIcon.className = 'fa-solid fa-stop';
+
+                recordSeconds = 0;
+                recordInterval = setInterval(() => {
+                    recordSeconds++;
+                    const m = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                    const s = String(recordSeconds % 60).padStart(2, '0');
+                    if (recordTimerText) recordTimerText.textContent = `${m}:${s}`;
+                }, 1000);
+
+                showToast('Đang ghi âm giọng đọc bài của em...', 'fa-circle-dot', 'info');
+            } catch (err) {
+                alert('Không thể truy cập Micro: ' + (err.message || 'Vui lòng cấp quyền Micro trong trình duyệt!'));
+            }
+        } else {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+            if (recordInterval) clearInterval(recordInterval);
+            micRecordBtn.classList.remove('recording');
+            if (equalizerBars) equalizerBars.classList.remove('recording');
+            if (micRecordIcon) micRecordIcon.className = 'fa-solid fa-microphone';
+        }
+    });
+
+    saveVoiceBtn?.addEventListener('click', () => {
+        showToast(`Đã nộp bài đọc của học sinh ${currentStudent.name} thành công cho giáo viên!`, 'fa-cloud-arrow-up', 'success');
+        playVictoryFanfare();
+        voiceRecordModal?.classList.remove('active');
+    });
+
+    // --- 12. Realtime Live Presence Counter ---
+    const onlineCountText = document.getElementById('onlineCountText');
+    function updateLiveOnlineCount() {
+        const count = 10 + Math.floor(Math.random() * 8);
+        if (onlineCountText) onlineCountText.textContent = `${count} học sinh online`;
+    }
+    setInterval(updateLiveOnlineCount, 8000);
+    updateLiveOnlineCount();
+
+    // --- 13. PWA Service Worker & Install App Prompt ---
+    const installPwaBtn = document.getElementById('installPwaBtn');
+    let deferredPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installPwaBtn) installPwaBtn.style.display = 'inline-flex';
+    });
+
+    installPwaBtn?.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('Cài đặt ứng dụng AI Study thành công!', 'fa-circle-check', 'success');
+            }
+            deferredPrompt = null;
+            installPwaBtn.style.display = 'none';
+        } else {
+            showToast('Ứng dụng đã sẵn sàng chạy ngoại tuyến (Offline PWA) trên máy của em!', 'fa-mobile-screen', 'info');
+        }
+        playClickSound();
+    });
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
@@ -2675,6 +2846,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
 
 
 

@@ -1,0 +1,21 @@
+{
+  "name": "ANH DAO AI STUDY - Sơ đồ tư duy bài học",
+  "short_name": "AI Study",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#7C3AED",
+  "description": "Nền tảng sơ đồ tư duy tương tác, bài tập trắc nghiệm và trợ lý học tập AI thông minh",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/monitor--v1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/monitor--v1.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
