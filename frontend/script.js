@@ -3057,6 +3057,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- 19. Accessibility Large Text & High Contrast Mode ---
+    const accessibilityFontBtn = document.getElementById('accessibilityFontBtn');
+    const fontScaleText = document.getElementById('fontScaleText');
+    const FONT_SCALES = ['normal', 'large', 'xl'];
+    const FONT_LABELS = {
+        'normal': 'Chữ: Vừa',
+        'large': 'Chữ: To 120%',
+        'xl': 'Chữ: Cực đại 140%'
+    };
+    let currentFontScale = localStorage.getItem('accessibility_font_scale') || 'normal';
+
+    function applyFontScale(scale) {
+        currentFontScale = scale;
+        document.body.classList.remove('accessibility-large-text', 'accessibility-xl-text');
+
+        if (scale === 'large') {
+            document.body.classList.add('accessibility-large-text');
+        } else if (scale === 'xl') {
+            document.body.classList.add('accessibility-xl-text');
+        }
+
+        if (fontScaleText) fontScaleText.textContent = FONT_LABELS[scale] || 'Chữ: Vừa';
+        localStorage.setItem('accessibility_font_scale', scale);
+
+        setTimeout(() => {
+            lines.forEach(l => l.position());
+        }, 80);
+    }
+
+    accessibilityFontBtn?.addEventListener('click', () => {
+        const nextIdx = (FONT_SCALES.indexOf(currentFontScale) + 1) % FONT_SCALES.length;
+        const nextScale = FONT_SCALES[nextIdx];
+        applyFontScale(nextScale);
+        showToast(`Đã chuyển sang ${FONT_LABELS[nextScale]} giúp nhìn rõ hơn!`, 'fa-text-height', 'info');
+        playClickSound();
+    });
+
+    if (currentFontScale !== 'normal') {
+        applyFontScale(currentFontScale);
+    }
+
     // Update finishQuiz celebration with Confetti & Victory Fanfare
     const originalFinishQuiz = finishQuiz;
     finishQuiz = async function() {
