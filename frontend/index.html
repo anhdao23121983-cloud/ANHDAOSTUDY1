@@ -16,11 +16,21 @@
     <!-- Top Controls Header -->
     <div class="top-controls">
         <div class="top-controls-left">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Tìm kiếm bài học, môn học..." autocomplete="off">
-                <span class="search-count-badge" id="searchCountBadge"></span>
-                <button class="search-clear-btn" id="searchClearBtn" title="Xóa tìm kiếm">&times;</button>
+            <div class="search-box-wrapper">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm bài học, môn học, lớp 1-12... (Ctrl+K)" autocomplete="off">
+                    <span class="search-count-badge" id="searchCountBadge"></span>
+                    <button class="search-clear-btn" id="searchClearBtn" title="Xóa tìm kiếm">&times;</button>
+                </div>
+                <!-- Omnisearch Quick Results Dropdown -->
+                <div class="search-dropdown-menu" id="searchDropdownMenu">
+                    <div class="search-dropdown-header">
+                        <span><i class="fa-solid fa-bolt"></i> GỢI Ý TÌM KIẾM NHANH (LỚP 1 - 12)</span>
+                        <span class="search-shortcut-hint">ESC để đóng</span>
+                    </div>
+                    <div class="search-results-list" id="searchResultsList"></div>
+                </div>
             </div>
 
             <!-- Grade Level Selector (Lớp 1 đến Lớp 12 - Bộ GD&ĐT) -->

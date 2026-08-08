@@ -641,6 +641,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchClearBtn = document.getElementById('searchClearBtn');
     const searchCountBadge = document.getElementById('searchCountBadge');
 
+    // --- Real-time Omnisearch Box Logic (Lớp 1 đến Lớp 12 & Toàn bộ Môn học) ---
+    const searchInput = document.getElementById('searchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchCountBadge = document.getElementById('searchCountBadge');
+    const searchDropdownMenu = document.getElementById('searchDropdownMenu');
+    const searchResultsList = document.getElementById('searchResultsList');
+
     function performSearch() {
         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const nodes = document.querySelectorAll('.node');
@@ -653,12 +660,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchCountBadge.classList.remove('visible', 'no-match');
                 searchCountBadge.textContent = '';
             }
+            if (searchDropdownMenu) searchDropdownMenu.classList.remove('active');
             return;
         }
 
         let firstMatch = null;
-        let matchCount = 0;
+        let localMatchCount = 0;
 
+        // 1. Check active diagram nodes on screen
         nodes.forEach(node => {
             const title = (node.querySelector('.node-title')?.textContent || '').toLowerCase();
             const desc = (node.querySelector('.node-desc')?.textContent || '').toLowerCase();
@@ -666,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title.includes(query) || desc.includes(query)) {
                 node.classList.remove('search-dimmed');
                 node.classList.add('search-match');
-                matchCount++;
+                localMatchCount++;
                 if (!firstMatch) firstMatch = node;
             } else {
                 node.classList.remove('search-match');
@@ -674,11 +683,128 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // 2. Search across ALL 12 grades and ALL subjects in CURRICULUM_CATALOG
+        const globalResults = [];
+        if (window.CURRICULUM_CATALOG) {
+            Object.keys(window.CURRICULUM_CATALOG).forEach(gradeKey => {
+                const gradeObj = window.CURRICULUM_CATALOG[gradeKey];
+                if (!gradeObj || !gradeObj.subjects) return;
+
+                Object.keys(gradeObj.subjects).forEach(subKey => {
+                    const subObj = gradeObj.subjects[subKey];
+                    // Check subject name
+                    if (subObj.name && subObj.name.toLowerCase().includes(query)) {
+                        globalResults.push({
+                            gradeKey,
+                            gradeName: gradeObj.name,
+                            subKey,
+                            subName: subObj.name,
+                            title: subObj.name,
+                            desc: `Toàn bộ sơ đồ bài học & trắc nghiệm ${subObj.name}`,
+                            type: 'Môn học'
+                        });
+                    }
+
+                    // Check nodes
+                    if (subObj.nodes) {
+                        Object.keys(subObj.nodes).forEach(nKey => {
+                            const n = subObj.nodes[nKey];
+                            if (n.title.toLowerCase().includes(query) || n.desc.toLowerCase().includes(query)) {
+                                globalResults.push({
+                                    gradeKey,
+                                    gradeName: gradeObj.name,
+                                    subKey,
+                                    subName: subObj.name,
+                                    nodeId: nKey,
+                                    title: n.title,
+                                    desc: n.desc,
+                                    type: 'Bài học'
+                                });
+                            }
+                        });
+                    }
+
+                    // Check quizzes
+                    if (subObj.quizzes) {
+                        subObj.quizzes.forEach((qz, idx) => {
+                            if (qz.q.toLowerCase().includes(query) || (qz.exp && qz.exp.toLowerCase().includes(query))) {
+                                globalResults.push({
+                                    gradeKey,
+                                    gradeName: gradeObj.name,
+                                    subKey,
+                                    subName: subObj.name,
+                                    title: `Câu hỏi trắc nghiệm #${idx + 1}: ${qz.q}`,
+                                    desc: qz.exp || 'Bài kiểm tra ôn luyện kiến thức',
+                                    type: 'Trắc nghiệm'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        // 3. Render Dropdown Quick Results
+        if (searchResultsList && searchDropdownMenu) {
+            if (globalResults.length > 0) {
+                searchResultsList.innerHTML = '';
+                // Limit to top 8 most relevant matches
+                globalResults.slice(0, 8).forEach(res => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    item.innerHTML = `
+                        <div class="search-result-left">
+                            <div class="search-result-title">
+                                <i class="fa-solid ${res.type === 'Môn học' ? 'fa-book-open' : (res.type === 'Trắc nghiệm' ? 'fa-circle-question' : 'fa-graduation-cap')}" style="color: #7C3AED;"></i>
+                                ${res.title}
+                            </div>
+                            <div class="search-result-desc">${res.desc}</div>
+                        </div>
+                        <div class="search-result-badge">${res.gradeKey.toUpperCase()} • ${res.subName}</div>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        // Switch grade
+                        if (gradeSelector) {
+                            gradeSelector.value = res.gradeKey;
+                            currentGradeKey = res.gradeKey;
+                            localStorage.setItem('current_grade_level', currentGradeKey);
+                            populateSubjectsForGrade(currentGradeKey);
+                        }
+
+                        // Switch subject
+                        switchSubjectDiagram(res.subKey, false);
+
+                        // Highlight matched node if present
+                        if (res.nodeId) {
+                            const targetNode = document.getElementById(res.nodeId);
+                            if (targetNode) {
+                                targetNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                                targetNode.classList.add('speaking-active');
+                                setTimeout(() => targetNode.classList.remove('speaking-active'), 3000);
+                            }
+                        }
+
+                        searchDropdownMenu.classList.remove('active');
+                        showToast(`Đã chuyển ngay tới: ${res.gradeName} - ${res.subName}!`, 'fa-bolt', 'success');
+                        playClickSound();
+                    });
+
+                    searchResultsList.appendChild(item);
+                });
+                searchDropdownMenu.classList.add('active');
+            } else {
+                searchResultsList.innerHTML = '<div class="search-no-results"><i class="fa-solid fa-magnifying-glass"></i> Không tìm thấy bài học nào phù hợp từ khóa này.</div>';
+                searchDropdownMenu.classList.add('active');
+            }
+        }
+
+        const totalMatches = localMatchCount + globalResults.length;
         if (searchCountBadge) {
             searchCountBadge.classList.add('visible');
-            if (matchCount > 0) {
+            if (totalMatches > 0) {
                 searchCountBadge.classList.remove('no-match');
-                searchCountBadge.textContent = `Tìm thấy ${matchCount} kết quả`;
+                searchCountBadge.textContent = `${totalMatches} kết quả`;
             } else {
                 searchCountBadge.classList.add('no-match');
                 searchCountBadge.textContent = `Không tìm thấy`;
@@ -691,11 +817,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     searchInput?.addEventListener('input', performSearch);
+    searchInput?.addEventListener('focus', () => {
+        if (searchInput.value.trim().length > 0) performSearch();
+    });
+
+    // Close search dropdown on click outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-box-wrapper')) {
+            searchDropdownMenu?.classList.remove('active');
+        }
+    });
+
+    // Keyboard shortcut: Ctrl + K or / to focus search, ESC to close
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) {
+            e.preventDefault();
+            searchInput?.focus();
+            searchInput?.select();
+        }
+        if (e.key === 'Escape') {
+            searchDropdownMenu?.classList.remove('active');
+            if (searchInput) searchInput.blur();
+        }
+    });
 
     searchClearBtn?.addEventListener('click', () => {
         if (searchInput) {
             searchInput.value = '';
             performSearch();
+            searchDropdownMenu?.classList.remove('active');
             searchInput.focus();
         }
     });
