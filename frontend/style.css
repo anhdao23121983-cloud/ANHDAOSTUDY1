@@ -2028,7 +2028,130 @@ body.dark-mode .ai-chat-footer input {
     font-size: 15px;
 }
 
-    color: #F8FAFC;
+/* Share Button & Pomodoro Timer */
+.action-btn.btn-share {
+    background: #EFF6FF;
+    border-color: #93C5FD;
+    color: #1D4ED8;
 }
+
+.action-btn.btn-share:hover {
+    background: #2563EB;
+    color: #FFFFFF;
+}
+
+.action-btn.btn-pomodoro {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+}
+
+.action-btn.btn-pomodoro:hover,
+.action-btn.btn-pomodoro.active {
+    background: #EF4444;
+    color: #FFFFFF;
+    border-color: #DC2626;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+/* Share Buttons Grid */
+.share-buttons-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.share-opt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-share-zalo {
+    background: #0068FF;
+    color: #FFFFFF;
+}
+
+.btn-share-fb {
+    background: #1877F2;
+    color: #FFFFFF;
+}
+
+.btn-share-copy {
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #CBD5E1;
+}
+
+.share-opt-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+/* Whiteboard Drawing Canvas */
+.whiteboard-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    cursor: crosshair;
+}
+
+.whiteboard-palette {
+    position: fixed;
+    bottom: 84px;
+    right: 24px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.draw-color-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.draw-color-btn.active {
+    transform: scale(1.25);
+    border-color: #1E293B;
+}
+
+.palette-btn {
+    padding: 4px 10px;
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+
+.palette-btn:hover {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
 
 

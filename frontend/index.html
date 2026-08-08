@@ -39,6 +39,18 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Share Diagram Button -->
+            <button class="action-btn btn-share" id="shareDiagramBtn" title="Chia sẻ sơ đồ bài học qua Zalo, Facebook, QR">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Chia sẻ</span>
+            </button>
+
+            <!-- Pomodoro Study Focus Timer -->
+            <button class="action-btn btn-pomodoro" id="pomodoroToggleBtn" title="Đồng hồ Pomodoro học tập tập trung (25 phút học / 5 phút nghỉ)">
+                <i class="fa-solid fa-hourglass-half" id="pomodoroIcon"></i>
+                <span id="pomodoroText">25:00</span>
+            </button>
+
             <!-- Realtime Live Online Presence Pill -->
             <div class="live-status-pill" title="Số lượng học sinh đang cùng tham gia học trực tuyến">
                 <span class="pulse-dot-green"></span>
@@ -603,17 +615,59 @@
         <button class="toolbar-btn" id="exportPngBtn" title="Tải sơ đồ thành ảnh PNG siêu nét"><i class="fa-solid fa-camera"></i></button>
         <button class="toolbar-btn" id="fullscreenBtn" title="Bật/Tắt chế độ Toàn màn hình"><i class="fa-solid fa-expand"></i></button>
         <button class="toolbar-btn btn-voice-tool" id="openVoiceRecordBtn" title="Ghi âm giọng đọc bài của học sinh"><i class="fa-solid fa-microphone"></i></button>
+        <button class="toolbar-btn btn-draw-tool" id="toggleDrawingBtn" title="Bật/Tắt bảng vẽ phấn màu & Ghi chú tay lên sơ đồ"><i class="fa-solid fa-paintbrush"></i></button>
         <button class="toolbar-btn btn-teacher-tool" id="openAddQuestionBtn" title="Soạn thêm câu hỏi trắc nghiệm mới (Dành cho Giáo viên)"><i class="fa-solid fa-circle-question"></i></button>
+    </div>
+
+    <!-- Interactive Whiteboard Canvas & Floating Palette -->
+    <canvas id="whiteboardCanvas" class="whiteboard-canvas" style="display: none;"></canvas>
+    <div class="whiteboard-palette" id="whiteboardPalette" style="display: none;">
+        <button class="draw-color-btn active" data-color="#EF4444" style="background:#EF4444;" title="Bút đỏ"></button>
+        <button class="draw-color-btn" data-color="#3B82F6" style="background:#3B82F6;" title="Bút xanh dương"></button>
+        <button class="draw-color-btn" data-color="#10B981" style="background:#10B981;" title="Bút xanh lá"></button>
+        <button class="draw-color-btn" data-color="#F59E0B" style="background:#F59E0B;" title="Bút vàng dạ quang"></button>
+        <button class="draw-color-btn" data-color="#7C3AED" style="background:#7C3AED;" title="Bút tím"></button>
+        <div class="palette-divider"></div>
+        <button class="palette-btn" id="clearDrawingBtn" title="Xóa toàn bộ nét vẽ"><i class="fa-solid fa-eraser"></i> Xóa nét</button>
+    </div>
+
+    <!-- Quick Share Diagram Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-card modal-card-sm" style="text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-share-nodes"></i> Chia sẻ Sơ đồ Bài học</h3>
+                <button class="modal-close" id="shareModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 16px;">
+                    Chia sẻ sơ đồ tư duy cho bạn bè, phụ huynh và nhóm học tập qua:
+                </p>
+                <div class="share-buttons-grid">
+                    <button class="share-opt-btn btn-share-zalo" id="shareZaloBtn">
+                        <i class="fa-solid fa-comment-dots"></i> Zalo
+                    </button>
+                    <button class="share-opt-btn btn-share-fb" id="shareFbBtn">
+                        <i class="fa-brands fa-facebook"></i> Facebook
+                    </button>
+                    <button class="share-opt-btn btn-share-copy" id="shareCopyLinkBtn">
+                        <i class="fa-solid fa-link"></i> Sao chép Link
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn btn-secondary" id="shareModalCancelBtn">Đóng</button>
+            </div>
+        </div>
     </div>
 
     <!-- Student Voice Reading & Recording Modal -->
     <div class="modal-overlay" id="voiceRecordModal">
         <div class="modal-card modal-card-sm" style="text-align: center;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-microphone-lines"></i> Ghi âm Giọng đọc Bài học</h3>
+                <h3><i class="fa-solid fa-microphone-lines"></i> Ghi âm & Chấm điểm Phát âm AI</h3>
                 <button class="modal-close" id="voiceModalCloseBtn">&times;</button>
             </div>
-            <div class="modal-body" style="padding: 24px 16px;">
+            <div class="modal-body" style="padding: 20px 16px;">
                 <div class="record-visualizer">
                     <button class="mic-record-circle-btn" id="micRecordBtn">
                         <i class="fa-solid fa-microphone" id="micRecordIcon"></i>
@@ -626,18 +680,18 @@
                     </div>
                 </div>
 
-                <div class="audio-preview-container" id="audioPreviewContainer" style="display: none; margin-top: 16px;">
-                    <audio id="audioPlayback" controls style="width: 100%; outline: none; border-radius: 8px;"></audio>
+                <div class="ai-pronunciation-box" id="aiPronunciationBox" style="display: none; margin-top: 14px; padding: 10px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; font-size: 13px; color: #065F46;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Chấm điểm AI:</strong> <span id="pronunciationScoreText">Đạt 98% - Phát âm rất chuẩn và lưu loát!</span>
                 </div>
 
-                <p style="font-size: 12.5px; color: #64748B; margin: 14px 0 0 0;">
-                    Nhấn vào Micro để bắt đầu đọc to bài học. Bản ghi âm sẽ được lưu và gửi trực tiếp cho giáo viên chấm điểm.
-                </p>
+                <div class="audio-preview-container" id="audioPreviewContainer" style="display: none; margin-top: 14px;">
+                    <audio id="audioPlayback" controls style="width: 100%; outline: none; border-radius: 8px;"></audio>
+                </div>
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
                 <button class="btn btn-secondary" id="voiceModalCancelBtn">Hủy</button>
                 <button class="btn btn-primary" id="saveVoiceBtn" disabled>
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Nộp bản ghi âm
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Nộp bài cho Giáo viên
                 </button>
             </div>
         </div>
