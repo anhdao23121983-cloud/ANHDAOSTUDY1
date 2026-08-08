@@ -1273,4 +1273,234 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-init Supabase on load
     initSupabase();
+
+    // --- Multi-Subject Diagram & Lesson Tree Management ---
+    const subjectSelector = document.getElementById('subjectSelector');
+    const addSubjectBtn = document.getElementById('addSubjectBtn');
+    const subjectModal = document.getElementById('subjectModal');
+    const subjectModalCloseBtn = document.getElementById('subjectModalCloseBtn');
+    const subjectModalCancelBtn = document.getElementById('subjectModalCancelBtn');
+    const saveNewSubjectBtn = document.getElementById('saveNewSubjectBtn');
+    const newSubjectName = document.getElementById('newSubjectName');
+    const newSubjectDesc = document.getElementById('newSubjectDesc');
+
+    let selectedSubjectColor = '#7C3AED';
+    let currentSubjectId = localStorage.getItem('current_diagram_subject') || 'tinhoc';
+
+    const SUBJECT_TEMPLATES = {
+        tinhoc: {
+            name: 'Môn Tin học',
+            color: '#7C3AED',
+            icon: 'monitor',
+            nodes: {
+                'node-1': { title: 'WELCOME TO ANH DAO AI STUDY', desc: 'Nhấp đúp chuột để chỉnh sửa thông tin', icon: 'monitor', color: '#7C3AED' },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: 'HS: Đào Thùy Anh - Lớp 5A', icon: 'monitor', color: '#7C3AED' },
+                'node-3': { title: 'BÀI HỌC MÔN TIN HỌC', desc: 'Khám phá thế giới máy tính & lập trình', icon: 'book', color: '#7C3AED' },
+                'node-4': { title: 'TRÒ CHƠI MÔN TIN HỌC', desc: 'Luyện gõ 10 ngón & trò chơi tư duy', icon: 'gamepad', color: '#7C3AED' },
+                'node-5': { title: 'BÀI KIỂM TRA MÔN TIN HỌC', desc: 'Trắc nghiệm kiến thức Tin học kỳ 1', icon: 'quiz', color: '#7C3AED' },
+                'node-6': { title: 'TIN HỌC LỚP 5 - PHẦN MỀM', desc: 'Làm quen với soạn thảo văn bản Word', icon: 'monitor', color: '#7C3AED' },
+                'node-7': { title: 'TIN HỌC LỚP 5 - TRÌNH CHIẾU', desc: 'Thiết kế bài thuyết trình PowerPoint', icon: 'monitor', color: '#7C3AED' },
+                'node-8': { title: 'TIN HỌC LỚP 5 - INTERNET', desc: 'Tìm kiếm thông tin an toàn trên mạng', icon: 'monitor', color: '#7C3AED' }
+            }
+        },
+        toan: {
+            name: 'Môn Toán học',
+            color: '#2563EB',
+            icon: 'cube',
+            nodes: {
+                'node-1': { title: 'HỆ THỐNG TOÁN HỌC TIỂU HỌC', desc: 'Học toán tư duy & rèn luyện logic', icon: 'cube', color: '#2563EB' },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: 'HS: Đào Thùy Anh - Lớp 5A', icon: 'grad', color: '#2563EB' },
+                'node-3': { title: 'BÀI HỌC SỐ HỌC & PHÂN SỐ', desc: 'Cộng trừ nhân chia số thập phân', icon: 'book', color: '#2563EB' },
+                'node-4': { title: 'TRÒ CHƠI GIẢI ĐỐ TOÁN NHANH', desc: 'Thi đấu tính nhẩm siêu tốc', icon: 'gamepad', color: '#2563EB' },
+                'node-5': { title: 'BÀI KIỂM TRA TOÁN HỌC', desc: 'Đề thi khảo sát chất lượng tháng', icon: 'quiz', color: '#2563EB' },
+                'node-6': { title: 'HÌNH HỌC LỚP 5', desc: 'Tính diện tích hình thang, hình tròn', icon: 'cube', color: '#2563EB' },
+                'node-7': { title: 'TOÁN CHUYỂN ĐỘNG', desc: 'Bài toán vận tốc, quãng đường, thời gian', icon: 'cube', color: '#2563EB' },
+                'node-8': { title: 'TOÁN NÂNG CAO', desc: 'Tỉ số phần trăm và toán suy luận', icon: 'cube', color: '#2563EB' }
+            }
+        },
+        tiengviet: {
+            name: 'Môn Tiếng Việt',
+            color: '#059669',
+            icon: 'book',
+            nodes: {
+                'node-1': { title: 'KHÁM PHÁ TIẾNG VIỆT LỚP 5', desc: 'Hành trình làm giàu vốn từ tiếng Việt', icon: 'book', color: '#059669' },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: 'HS: Đào Thùy Anh - Lớp 5A', icon: 'grad', color: '#059669' },
+                'node-3': { title: 'TẬP ĐỌC & KỂ CHUYỆN', desc: 'Bài học Đất nước mến yêu', icon: 'book', color: '#059669' },
+                'node-4': { title: 'TRÒ CHƠI Ô CHỮ TIẾNG VIỆT', desc: 'Ghép từ nối câu & tìm từ đồng nghĩa', icon: 'gamepad', color: '#059669' },
+                'node-5': { title: 'KIỂM TRA CHÍNH TẢ & TẬP LÀM VĂN', desc: 'Bài văn tả cảnh thiên nhiên', icon: 'quiz', color: '#059669' },
+                'node-6': { title: 'LUYỆN TỪ VÀ CÂU', desc: 'Từ nhiều nghĩa và đại từ xưng hô', icon: 'book', color: '#059669' },
+                'node-7': { title: 'TẬP LÀM VĂN MIÊU TẢ', desc: 'Kỹ năng quan sát và diễn đạt', icon: 'book', color: '#059669' },
+                'node-8': { title: 'THƠ CA THIẾU NHI', desc: 'Cảm thụ tác phẩm văn học hay', icon: 'book', color: '#059669' }
+            }
+        },
+        tienganh: {
+            name: 'Môn Tiếng Anh',
+            color: '#D97706',
+            icon: 'cube',
+            nodes: {
+                'node-1': { title: 'ENGLISH ADVENTURE GRADE 5', desc: 'Fun & Interactive English Learning', icon: 'grad', color: '#D97706' },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: 'HS: Đào Thùy Anh - Lớp 5A', icon: 'grad', color: '#D97706' },
+                'node-3': { title: 'VOCABULARY & GRAMMAR', desc: 'Daily activities and hobbies', icon: 'book', color: '#D97706' },
+                'node-4': { title: 'ENGLISH WORD GAMES', desc: 'Spelling bee and picture quiz', icon: 'gamepad', color: '#D97706' },
+                'node-5': { title: 'ENGLISH LISTENING & QUIZ', desc: 'Unit review test & Speaking', icon: 'quiz', color: '#D97706' },
+                'node-6': { title: 'UNIT 1: MY FUTURE JOB', desc: 'What would you like to be?', icon: 'monitor', color: '#D97706' },
+                'node-7': { title: 'UNIT 2: OUR SCHOOL TRIPS', desc: 'Talking about past experiences', icon: 'monitor', color: '#D97706' },
+                'node-8': { title: 'UNIT 3: HEALTHY HABITS', desc: 'Giving health advice and rules', icon: 'monitor', color: '#D97706' }
+            }
+        },
+        khoahoc: {
+            name: 'Môn Khoa học',
+            color: '#E11D48',
+            icon: 'cube',
+            nodes: {
+                'node-1': { title: 'THẾ GIỚI KHOA HỌC TỰ NHIÊN', desc: 'Khám phá bí ẩn vũ trụ và sinh vật', icon: 'cube', color: '#E11D48' },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: 'HS: Đào Thùy Anh - Lớp 5A', icon: 'grad', color: '#E11D48' },
+                'node-3': { title: 'BÀI HỌC VẬT CHẤT & NĂNG LƯỢNG', desc: 'Điện năng, ánh sáng và nhiệt độ', icon: 'book', color: '#E11D48' },
+                'node-4': { title: 'TRÒ CHƠI THÍ NGHIỆM VUI', desc: 'Mô phỏng thí nghiệm khoa học ảo', icon: 'gamepad', color: '#E11D48' },
+                'node-5': { title: 'BÀI KIỂM TRA KHOA HỌC', desc: 'Khảo sát hiểu biết tự nhiên', icon: 'quiz', color: '#E11D48' },
+                'node-6': { title: 'CON NGƯỜI VÀ SỨC KHỎE', desc: 'Dinh dưỡng và phòng tránh bệnh tật', icon: 'cube', color: '#E11D48' },
+                'node-7': { title: 'THỰC VẬT VÀ ĐỘNG VẬT', desc: 'Sự sinh sản của các loài sinh vật', icon: 'cube', color: '#E11D48' },
+                'node-8': { title: 'BẢO VỆ MÔI TRƯỜNG', desc: 'Tiết kiệm tài nguyên thiên nhiên', icon: 'cube', color: '#E11D48' }
+            }
+        }
+    };
+
+    function switchSubjectDiagram(subjectId, isManual = true) {
+        currentSubjectId = subjectId;
+        localStorage.setItem('current_diagram_subject', subjectId);
+        if (subjectSelector) subjectSelector.value = subjectId;
+
+        const tmpl = SUBJECT_TEMPLATES[subjectId] || SUBJECT_TEMPLATES['tinhoc'];
+        const subColor = tmpl.color || '#7C3AED';
+
+        if (subjectSelector) {
+            subjectSelector.style.borderColor = subColor;
+            subjectSelector.style.color = subColor;
+        }
+
+        // Check if custom node data exists for this subject in localStorage
+        const customKey = `flowchart_nodes_data_${subjectId}`;
+        const savedData = JSON.parse(localStorage.getItem(customKey) || 'null');
+        const nodesSource = savedData || tmpl.nodes;
+
+        document.querySelectorAll('.node').forEach(node => {
+            const data = nodesSource[node.id] || tmpl.nodes[node.id];
+            if (data) {
+                const titleEl = node.querySelector('.node-title');
+                const descEl = node.querySelector('.node-desc');
+                if (titleEl && data.title) titleEl.textContent = data.title;
+                if (descEl && data.desc) descEl.textContent = data.desc;
+                applyNodeCustomStyles(node, data.icon || 'monitor', data.color || subColor, data.url || '');
+
+                if (data.pos_x || data.pos_y) {
+                    node.style.transform = `translate(${data.pos_x}px, ${data.pos_y}px)`;
+                    node.dataset.x = data.pos_x;
+                    node.dataset.y = data.pos_y;
+                } else {
+                    node.style.transform = '';
+                    delete node.dataset.x;
+                    delete node.dataset.y;
+                }
+            }
+        });
+
+        lines.forEach(line => {
+            line.color = subColor;
+            line.position();
+        });
+
+        updateStudentUI();
+        renderChecklist();
+
+        if (isManual) {
+            showToast(`Đã chuyển sang sơ đồ: ${tmpl.name}!`, 'fa-folder-open', 'success');
+            playClickSound();
+        }
+    }
+
+    // Color selector for new subject
+    document.querySelectorAll('#subjectColorSelector .color-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#subjectColorSelector .color-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedSubjectColor = btn.dataset.color;
+            playClickSound();
+        });
+    });
+
+    subjectSelector?.addEventListener('change', (e) => {
+        switchSubjectDiagram(e.target.value);
+    });
+
+    addSubjectBtn?.addEventListener('click', () => {
+        if (newSubjectName) newSubjectName.value = '';
+        if (newSubjectDesc) newSubjectDesc.value = '';
+        subjectModal?.classList.add('active');
+        newSubjectName?.focus();
+    });
+
+    subjectModalCloseBtn?.addEventListener('click', () => {
+        subjectModal?.classList.remove('active');
+    });
+
+    subjectModalCancelBtn?.addEventListener('click', () => {
+        subjectModal?.classList.remove('active');
+    });
+
+    saveNewSubjectBtn?.addEventListener('click', async () => {
+        const name = newSubjectName ? newSubjectName.value.trim() : '';
+        const desc = newSubjectDesc ? newSubjectDesc.value.trim() : '';
+
+        if (!name) {
+            alert('Vui lòng nhập tên môn học hoặc chủ đề!');
+            return;
+        }
+
+        const newId = 'mon_' + Date.now();
+
+        // Create new template
+        SUBJECT_TEMPLATES[newId] = {
+            name: name,
+            color: selectedSubjectColor,
+            icon: 'book',
+            nodes: {
+                'node-1': { title: `SƠ ĐỒ ${name.toUpperCase()}`, desc: desc || 'Cây sơ đồ kiến thức trọng tâm', icon: 'grad', color: selectedSubjectColor },
+                'node-2': { title: 'NHẬP TÊN HS, LỚP', desc: `HS: ${currentStudent.name} - Lớp ${currentStudent.classroom}`, icon: 'grad', color: selectedSubjectColor },
+                'node-3': { title: `BÀI HỌC ${name.toUpperCase()}`, desc: 'Chủ đề lý thuyết căn bản', icon: 'book', color: selectedSubjectColor },
+                'node-4': { title: `TRÒ CHƠI ${name.toUpperCase()}`, desc: 'Trò chơi tương tác & giải đố', icon: 'gamepad', color: selectedSubjectColor },
+                'node-5': { title: `BÀI KIỂM TRA ${name.toUpperCase()}`, desc: 'Đề ôn tập & khảo sát kiến thức', icon: 'quiz', color: selectedSubjectColor },
+                'node-6': { title: `${name} - CHỦ ĐỀ 1`, desc: 'Kiến thức học kỳ I', icon: 'monitor', color: selectedSubjectColor },
+                'node-7': { title: `${name} - CHỦ ĐỀ 2`, desc: 'Kiến thức học kỳ II', icon: 'monitor', color: selectedSubjectColor },
+                'node-8': { title: `${name} - ÔN TẬP TỔNG HỢP`, desc: 'Đề thi cuối năm học', icon: 'monitor', color: selectedSubjectColor }
+            }
+        };
+
+        // Add to select dropdown
+        const opt = document.createElement('option');
+        opt.value = newId;
+        opt.textContent = `📚 ${name}`;
+        subjectSelector?.appendChild(opt);
+
+        // Sync to Supabase diagrams table
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('diagrams').upsert({
+                    id: newId,
+                    subject_name: name,
+                    description: desc,
+                    color: selectedSubjectColor,
+                    created_at: new Date().toISOString()
+                });
+            } catch (e) {}
+        }
+
+        subjectModal?.classList.remove('active');
+        switchSubjectDiagram(newId);
+        showToast(`Đã tạo thành công sơ đồ "${name}" và đồng bộ lên Supabase!`, 'fa-circle-check', 'success');
+    });
+
+    // Auto-init Subject
+    if (currentSubjectId && SUBJECT_TEMPLATES[currentSubjectId]) {
+        switchSubjectDiagram(currentSubjectId, false);
+    }
 });

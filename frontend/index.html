@@ -13,11 +13,27 @@
 
     <!-- Top Controls Header -->
     <div class="top-controls">
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="searchInput" placeholder="Tìm kiếm bài học, môn học..." autocomplete="off">
-            <span class="search-count-badge" id="searchCountBadge"></span>
-            <button class="search-clear-btn" id="searchClearBtn" title="Xóa tìm kiếm">&times;</button>
+        <div class="top-controls-left">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm bài học, môn học..." autocomplete="off">
+                <span class="search-count-badge" id="searchCountBadge"></span>
+                <button class="search-clear-btn" id="searchClearBtn" title="Xóa tìm kiếm">&times;</button>
+            </div>
+
+            <!-- Subject Switcher Dropdown & Add Button -->
+            <div class="subject-switcher-container">
+                <select class="subject-select" id="subjectSelector" title="Chọn môn học / sơ đồ bài học">
+                    <option value="tinhoc" data-icon="desktop" data-color="#7C3AED">💻 Môn Tin học</option>
+                    <option value="toan" data-icon="calculator" data-color="#2563EB">📐 Môn Toán học</option>
+                    <option value="tiengviet" data-icon="book" data-color="#059669">📖 Môn Tiếng Việt</option>
+                    <option value="tienganh" data-icon="globe" data-color="#D97706">🌐 Môn Tiếng Anh</option>
+                    <option value="khoahoc" data-icon="flask" data-color="#E11D48">🔬 Môn Khoa học</option>
+                </select>
+                <button class="action-btn btn-add-subject" id="addSubjectBtn" title="Tạo thêm môn học / sơ đồ mới">
+                    <i class="fa-solid fa-folder-plus"></i> <span>Tạo môn mới</span>
+                </button>
+            </div>
         </div>
 
         <div class="top-controls-right">
@@ -306,6 +322,45 @@
                     <button class="btn btn-secondary" id="studentModalCancelBtn">Đóng</button>
                     <button class="btn btn-primary" id="studentSaveBtn">
                         <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật Supabase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Subject / Diagram Modal -->
+    <div class="modal-overlay" id="subjectModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-folder-plus"></i> Tạo môn học & Cây sơ đồ mới</h3>
+                <button class="modal-close" id="subjectModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newSubjectName">Tên môn học / Chủ đề:</label>
+                    <input type="text" id="newSubjectName" placeholder="vd: Môn Lịch sử & Địa lý, Môn Mỹ thuật, Môn Âm nhạc...">
+                </div>
+                <div class="form-group">
+                    <label for="newSubjectDesc">Mô tả môn học:</label>
+                    <input type="text" id="newSubjectDesc" placeholder="vd: Cây sơ đồ bài học và bài kiểm tra môn Lịch sử...">
+                </div>
+                <div class="form-group">
+                    <label>Màu sắc chủ đạo của sơ đồ:</label>
+                    <div class="color-selector" id="subjectColorSelector">
+                        <button type="button" class="color-opt active" data-color="#7C3AED" style="background: #7C3AED;" title="Tím"></button>
+                        <button type="button" class="color-opt" data-color="#2563EB" style="background: #2563EB;" title="Xanh dương"></button>
+                        <button type="button" class="color-opt" data-color="#059669" style="background: #059669;" title="Xanh lá"></button>
+                        <button type="button" class="color-opt" data-color="#D97706" style="background: #D97706;" title="Cam"></button>
+                        <button type="button" class="color-opt" data-color="#E11D48" style="background: #E11D48;" title="Đỏ hồng"></button>
+                        <button type="button" class="color-opt" data-color="#0284C7" style="background: #0284C7;" title="Xanh Cyan"></button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-right" style="width:100%; justify-content:flex-end;">
+                    <button class="btn btn-secondary" id="subjectModalCancelBtn">Hủy</button>
+                    <button class="btn btn-primary" id="saveNewSubjectBtn">
+                        <i class="fa-solid fa-check"></i> Tạo sơ đồ & Lưu Supabase
                     </button>
                 </div>
             </div>
