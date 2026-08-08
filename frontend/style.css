@@ -593,11 +593,216 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Search Box Styling */
-.search-box {
-    position: relative;
+.action-btn.btn-quiz {
+    border-color: #F59E0B;
+    color: #D97706;
+    background: #FFFBEB;
+}
+
+.action-btn.btn-quiz:hover {
+    border-color: #D97706;
+    color: #B45309;
+    background: #FEF3C7;
+    box-shadow: 0 6px 16px rgba(217, 119, 6, 0.2);
+}
+
+/* Quiz Modal Styles */
+.quiz-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.quiz-step-badge {
+    background: #EFF6FF;
+    color: #2563EB;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.quiz-timer-badge {
+    background: #FEF3C7;
+    color: #B45309;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
+    gap: 6px;
+}
+
+.quiz-question-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+}
+
+.quiz-question-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.quiz-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.quiz-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.quiz-option-btn:hover {
+    border-color: #8B5CF6;
+    background: #F5F3FF;
+    transform: translateX(4px);
+}
+
+.quiz-option-btn.selected {
+    border-color: #7C3AED;
+    background: #F5F3FF;
+    color: #6D28D9;
+    font-weight: 600;
+}
+
+.quiz-option-btn.correct {
+    border-color: #10B981 !important;
+    background: #ECFDF5 !important;
+    color: #065F46 !important;
+    font-weight: 700;
+}
+
+.quiz-option-btn.wrong {
+    border-color: #EF4444 !important;
+    background: #FEF2F2 !important;
+    color: #991B1B !important;
+}
+
+.opt-prefix {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.quiz-feedback-box {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    animation: fadeIn 0.3s;
+}
+
+.quiz-feedback-box.correct {
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.quiz-feedback-box.wrong {
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+/* Quiz Score Summary Screen */
+.quiz-score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #3B82F6);
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.score-number {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+.quiz-result-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 6px;
+}
+
+.quiz-result-desc {
+    font-size: 13.5px;
+    color: #64748B;
+    margin-bottom: 20px;
+}
+
+.quiz-score-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.stat-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.stat-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2563EB;
+}
+
+.stat-lbl {
+    font-size: 11.5px;
+    color: #64748B;
+    margin-top: 2px;
+}
     width: 320px;
     background: #FFFFFF;
     border: 2px solid #E2E8F0;

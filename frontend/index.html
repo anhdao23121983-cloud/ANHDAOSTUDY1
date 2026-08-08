@@ -37,6 +37,12 @@
         </div>
 
         <div class="top-controls-right">
+            <!-- Interactive Quiz Button -->
+            <button class="action-btn btn-quiz" id="openQuizBtn" title="Làm bài kiểm tra trắc nghiệm tương tác">
+                <i class="fa-solid fa-file-circle-check"></i>
+                <span>Trắc nghiệm Quiz</span>
+            </button>
+
             <!-- Student Management & Progress Button -->
             <button class="action-btn btn-student" id="studentProfileBtn" title="Hồ sơ học sinh & Quản lý tiến độ học tập">
                 <i class="fa-solid fa-user-graduate"></i>
@@ -253,7 +259,8 @@
             <div class="modal-body">
                 <div class="student-dashboard-tabs">
                     <button type="button" class="tab-btn active" id="tabCurrentStudent"><i class="fa-solid fa-user-pen"></i> Học sinh hiện tại</button>
-                    <button type="button" class="tab-btn" id="tabClassList"><i class="fa-solid fa-users"></i> Danh sách cả lớp (Supabase Cloud)</button>
+                    <button type="button" class="tab-btn" id="tabClassList"><i class="fa-solid fa-users"></i> Tiến độ cả lớp</button>
+                    <button type="button" class="tab-btn" id="tabQuizLeaderboard"><i class="fa-solid fa-trophy"></i> Bảng điểm Quiz (Supabase)</button>
                 </div>
 
                 <!-- Tab 1: Current Student Details -->
@@ -313,6 +320,33 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Tab 3: Quiz Leaderboard from Supabase -->
+                <div class="tab-content" id="tabContentQuiz" style="display: none;">
+                    <div class="class-actions-bar">
+                        <span class="class-summary-text" id="quizSummaryText">Bảng vàng điểm thi trắc nghiệm</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="refreshQuizListBtn">
+                            <i class="fa-solid fa-rotate"></i> Làm mới
+                        </button>
+                    </div>
+                    <div class="class-table-container">
+                        <table class="class-table" id="quizTable">
+                            <thead>
+                                <tr>
+                                    <th>Hạng</th>
+                                    <th>Họ và tên</th>
+                                    <th>Môn thi</th>
+                                    <th>Điểm số</th>
+                                    <th>Tỷ lệ đúng</th>
+                                    <th>Thời gian nộp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quizTableBody">
+                                <tr><td colspan="6" class="table-loading">Đang tải bảng điểm từ Supabase Cloud...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-danger" id="studentResetProgressBtn" title="Đặt lại tiến độ của học sinh này về 0">
@@ -322,6 +356,69 @@
                     <button class="btn btn-secondary" id="studentModalCancelBtn">Đóng</button>
                     <button class="btn btn-primary" id="studentSaveBtn">
                         <i class="fa-solid fa-floppy-disk"></i> Lưu & Cập nhật Supabase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Quiz & Assessment Modal -->
+    <div class="modal-overlay" id="quizModal">
+        <div class="modal-card modal-card-lg quiz-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-feather-pointed"></i> <span id="quizModalTitle">Bài kiểm tra Trắc nghiệm Môn Tin học</span></h3>
+                <button class="modal-close" id="quizModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body" id="quizModalBody">
+                <!-- Screen 1: Taking Quiz -->
+                <div id="quizQuestionScreen">
+                    <div class="quiz-status-header">
+                        <span class="quiz-step-badge" id="quizStepBadge">Câu 1 / 3</span>
+                        <span class="quiz-timer-badge" id="quizTimerBadge"><i class="fa-regular fa-clock"></i> <span id="quizTimerText">00:45</span></span>
+                    </div>
+                    <div class="quiz-question-box">
+                        <h4 class="quiz-question-text" id="quizQuestionText">Nội dung câu hỏi đang tải...</h4>
+                    </div>
+                    <div class="quiz-options-list" id="quizOptionsList">
+                        <!-- Options A, B, C, D rendered by JS -->
+                    </div>
+                    <div class="quiz-feedback-box" id="quizFeedbackBox" style="display: none;">
+                        <span id="quizFeedbackText"></span>
+                    </div>
+                </div>
+
+                <!-- Screen 2: Result Summary -->
+                <div id="quizResultScreen" style="display: none; text-align: center; padding: 20px 10px;">
+                    <div class="quiz-score-circle" id="quizScoreCircle">
+                        <span class="score-number" id="quizScorePercent">100%</span>
+                        <span class="score-label" id="quizScoreLabel">Tuyệt vời! 🌟</span>
+                    </div>
+                    <h3 class="quiz-result-title" id="quizResultTitle">Chúc mừng học sinh Đào Thùy Anh!</h3>
+                    <p class="quiz-result-desc" id="quizResultDesc">Em đã hoàn thành 3/3 câu hỏi đúng và đạt điểm tối đa.</p>
+                    <div class="quiz-score-stats">
+                        <div class="stat-box">
+                            <div class="stat-val" id="statCorrect">3/3</div>
+                            <div class="stat-lbl">Số câu đúng</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" id="statTime">00:25</div>
+                            <div class="stat-lbl">Thời gian làm</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" id="statPoints">10 Điểm</div>
+                            <div class="stat-lbl">Điểm số</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="quizModalFooter">
+                <button class="btn btn-secondary" id="quizQuitBtn">Thoát bài thi</button>
+                <div class="modal-footer-right">
+                    <button class="btn btn-primary" id="quizNextBtn">
+                        <span>Câu tiếp theo</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-primary" id="quizRetryBtn" style="display: none;">
+                        <i class="fa-solid fa-rotate-left"></i> Làm lại bài thi
                     </button>
                 </div>
             </div>

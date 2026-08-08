@@ -1503,4 +1503,386 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentSubjectId && SUBJECT_TEMPLATES[currentSubjectId]) {
         switchSubjectDiagram(currentSubjectId, false);
     }
+
+    // --- Interactive Quiz & Assessment System (Supabase) ---
+    const openQuizBtn = document.getElementById('openQuizBtn');
+    const quizModal = document.getElementById('quizModal');
+    const quizModalCloseBtn = document.getElementById('quizModalCloseBtn');
+    const quizQuitBtn = document.getElementById('quizQuitBtn');
+    const quizNextBtn = document.getElementById('quizNextBtn');
+    const quizRetryBtn = document.getElementById('quizRetryBtn');
+    const quizModalTitle = document.getElementById('quizModalTitle');
+    const quizStepBadge = document.getElementById('quizStepBadge');
+    const quizTimerText = document.getElementById('quizTimerText');
+    const quizQuestionText = document.getElementById('quizQuestionText');
+    const quizOptionsList = document.getElementById('quizOptionsList');
+    const quizFeedbackBox = document.getElementById('quizFeedbackBox');
+    const quizFeedbackText = document.getElementById('quizFeedbackText');
+    const quizQuestionScreen = document.getElementById('quizQuestionScreen');
+    const quizResultScreen = document.getElementById('quizResultScreen');
+    const quizScorePercent = document.getElementById('quizScorePercent');
+    const quizScoreLabel = document.getElementById('quizScoreLabel');
+    const quizResultTitle = document.getElementById('quizResultTitle');
+    const quizResultDesc = document.getElementById('quizResultDesc');
+    const statCorrect = document.getElementById('statCorrect');
+    const statTime = document.getElementById('statTime');
+    const statPoints = document.getElementById('statPoints');
+    const tabQuizLeaderboard = document.getElementById('tabQuizLeaderboard');
+    const tabContentQuiz = document.getElementById('tabContentQuiz');
+    const quizTableBody = document.getElementById('quizTableBody');
+    const refreshQuizListBtn = document.getElementById('refreshQuizListBtn');
+
+    const QUIZ_BANKS = {
+        tinhoc: [
+            {
+                q: 'Trong phần mềm soạn thảo văn bản Word, tổ hợp phím nào dùng để LƯU tệp văn bản?',
+                opts: ['Ctrl + C', 'Ctrl + S', 'Ctrl + V', 'Ctrl + P'],
+                correct: 'B',
+                exp: 'Phím tắt Ctrl + S (Save) dùng để lưu lại văn bản đang soạn thảo.'
+            },
+            {
+                q: 'Thiết bị nào sau đây là THIẾT BỊ VÀO (Input Device) đưa dữ liệu vào máy tính?',
+                opts: ['Màn hình hiển thị', 'Máy in màu', 'Bàn phím (Keyboard)', 'Loa máy tính'],
+                correct: 'C',
+                exp: 'Bàn phím và Chuột là các thiết bị vào cơ bản giúp con người nhập thông tin.'
+            },
+            {
+                q: 'Để bảo vệ an toàn thông tin cá nhân trên mạng Internet, em nên làm gì?',
+                opts: [
+                    'Đặt mật khẩu đơn giản như 123456',
+                    'Chia sẻ mật khẩu và tài khoản cho nhiều bạn bè',
+                    'Đặt mật khẩu mạnh và không chia sẻ cho người lạ',
+                    'Bấm vào mọi đường link lạ gửi qua tin nhắn'
+                ],
+                correct: 'C',
+                exp: 'Mật khẩu mạnh và bảo mật thông tin cá nhân giúp tránh bị kẻ xấu đánh cắp tài khoản.'
+            }
+        ],
+        toan: [
+            {
+                q: 'Kết quả của phép tính cộng số thập phân: 12,5 + 3,75 là:',
+                opts: ['15,25', '16,25', '16,50', '15,75'],
+                correct: 'B',
+                exp: '12,5 + 3,75 = 16,25.'
+            },
+            {
+                q: 'Công thức tính diện tích hình chữ nhật có chiều dài a và chiều rộng b là:',
+                opts: ['S = (a + b) x 2', 'S = a x b', 'S = a x 4', 'S = a x a'],
+                correct: 'B',
+                exp: 'Diện tích hình chữ nhật bằng Chiều dài nhân Chiều rộng (S = a x b).'
+            },
+            {
+                q: 'Một ô tô chạy trong 2 giờ được 90 km. Vận tốc trung bình của ô tô là:',
+                opts: ['45 km/h', '40 km/h', '90 km/h', '180 km/h'],
+                correct: 'A',
+                exp: 'Vận tốc = Quãng đường : Thời gian = 90 : 2 = 45 km/h.'
+            }
+        ],
+        tiengviet: [
+            {
+                q: 'Cặp từ nào sau đây là cặp TỪ ĐỒNG NGHĨA?',
+                opts: ['Chăm chỉ - Siêng năng', 'Cao lớn - Thấp bé', 'Đen nhánh - Trắng tinh', 'Nhanh nhẹn - Chậm chạp'],
+                correct: 'A',
+                exp: 'Chăm chỉ và Siêng năng đều mang ý nghĩa cần cù, siêng năng lao động học tập.'
+            },
+            {
+                q: 'Trong câu: "Em yêu quý mái trường thân yêu của em", từ nào là ĐẠI TỪ XƯNG HÔ?',
+                opts: ['mái trường', 'Em', 'yêu quý', 'thân yêu'],
+                correct: 'B',
+                exp: '"Em" là đại từ dùng để xưng hô ngôi thứ nhất.'
+            }
+        ],
+        tienganh: [
+            {
+                q: 'Choose the correct answer: "What would you like to be in the future?"',
+                opts: ["I'd like to be a doctor.", "I like apples.", "She is reading a book.", "Yes, I can."],
+                correct: 'A',
+                exp: 'Câu hỏi hỏi về nghề nghiệp mong muốn trong tương lai -> I would like to be a...'
+            },
+            {
+                q: 'Complete the sentence: "Yesterday, we ______ to the museum by bus."',
+                opts: ['go', 'goes', 'went', 'going'],
+                correct: 'C',
+                exp: 'Yesterday là thì quá khứ đơn, động từ "go" chuyển thành "went".'
+            }
+        ],
+        khoahoc: [
+            {
+                q: 'Chất khí nào cần thiết cho sự thở (hô hấp) của con người và sinh vật?',
+                opts: ['Khí Ô-xi (O2)', 'Khí Ni-tơ (N2)', 'Khí Các-bô-níc (CO2)', 'Khí Hi-đrô (H2)'],
+                correct: 'A',
+                exp: 'Khí Ô-xi duy trì sự cháy và sự sống của mọi sinh vật.'
+            },
+            {
+                q: 'Nguồn năng lượng nào sau đây là NĂNG LƯỢNG SẠCH có thể tái tạo?',
+                opts: ['Than đá mỏ than', 'Năng lượng Mặt trời và Gió', 'Dầu mỏ khoáng sản', 'Khí đốt thiên nhiên'],
+                correct: 'B',
+                exp: 'Năng lượng mặt trời và gió là nguồn năng lượng tái tạo vô tận và không gây ô nhiễm.'
+            }
+        ]
+    };
+
+    let currentQuizQuestions = [];
+    let currentQuizIndex = 0;
+    let quizScoreCorrect = 0;
+    let quizTimeStart = 0;
+    let quizTimerTimer = null;
+    let quizOptionSelected = false;
+
+    function startQuiz(subjectId = currentSubjectId) {
+        currentQuizQuestions = QUIZ_BANKS[subjectId] || QUIZ_BANKS['tinhoc'];
+        currentQuizIndex = 0;
+        quizScoreCorrect = 0;
+        quizTimeStart = Date.now();
+
+        const tmpl = SUBJECT_TEMPLATES[subjectId] || SUBJECT_TEMPLATES['tinhoc'];
+        if (quizModalTitle) quizModalTitle.textContent = `Bài kiểm tra Trắc nghiệm ${tmpl.name}`;
+
+        if (quizQuestionScreen) quizQuestionScreen.style.display = 'block';
+        if (quizResultScreen) quizResultScreen.style.display = 'none';
+        if (quizNextBtn) quizNextBtn.style.display = 'inline-flex';
+        if (quizRetryBtn) quizRetryBtn.style.display = 'none';
+
+        startQuizTimer();
+        renderQuizStep();
+        quizModal?.classList.add('active');
+        playClickSound();
+    }
+
+    function startQuizTimer() {
+        if (quizTimerTimer) clearInterval(quizTimerTimer);
+        let seconds = 0;
+        quizTimerTimer = setInterval(() => {
+            seconds++;
+            const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const secs = String(seconds % 60).padStart(2, '0');
+            if (quizTimerText) quizTimerText.textContent = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    function stopQuizTimer() {
+        if (quizTimerTimer) clearInterval(quizTimerTimer);
+    }
+
+    function renderQuizStep() {
+        quizOptionSelected = false;
+        const qData = currentQuizQuestions[currentQuizIndex];
+        if (!qData) {
+            finishQuiz();
+            return;
+        }
+
+        if (quizStepBadge) quizStepBadge.textContent = `Câu ${currentQuizIndex + 1} / ${currentQuizQuestions.length}`;
+        if (quizQuestionText) quizQuestionText.textContent = qData.q;
+        if (quizFeedbackBox) quizFeedbackBox.style.display = 'none';
+
+        if (quizOptionsList) {
+            quizOptionsList.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D'];
+
+            qData.opts.forEach((optText, idx) => {
+                const letter = letters[idx];
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quiz-option-btn';
+                btn.dataset.letter = letter;
+                btn.innerHTML = `
+                    <span class="opt-prefix">${letter}</span>
+                    <span class="opt-text">${optText}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    if (quizOptionSelected) return;
+                    handleOptionClick(letter, btn, qData);
+                });
+
+                quizOptionsList.appendChild(btn);
+            });
+        }
+    }
+
+    function handleOptionClick(selectedLetter, clickedBtn, qData) {
+        quizOptionSelected = true;
+        const isCorrect = selectedLetter === qData.correct;
+
+        if (isCorrect) {
+            quizScoreCorrect++;
+            clickedBtn.classList.add('correct');
+            if (quizFeedbackBox) {
+                quizFeedbackBox.className = 'quiz-feedback-box correct';
+                quizFeedbackBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>Chính xác!</strong> ${qData.exp}`;
+                quizFeedbackBox.style.display = 'block';
+            }
+            showToast('Chính xác! +10 Điểm', 'fa-award', 'success');
+        } else {
+            clickedBtn.classList.add('wrong');
+            // Highlight the correct option
+            const correctBtn = quizOptionsList.querySelector(`[data-letter="${qData.correct}"]`);
+            if (correctBtn) correctBtn.classList.add('correct');
+
+            if (quizFeedbackBox) {
+                quizFeedbackBox.className = 'quiz-feedback-box wrong';
+                quizFeedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>Chưa chính xác!</strong> Đáp án đúng là <strong>${qData.correct}</strong>. ${qData.exp}`;
+                quizFeedbackBox.style.display = 'block';
+            }
+            showToast('Tiếc quá! Đáp án đúng là ' + qData.correct, 'fa-circle-xmark', 'error');
+        }
+        playClickSound();
+    }
+
+    quizNextBtn?.addEventListener('click', () => {
+        if (!quizOptionSelected) {
+            alert('Em hãy chọn một đáp án trước khi qua câu tiếp theo nhé!');
+            return;
+        }
+
+        currentQuizIndex++;
+        if (currentQuizIndex < currentQuizQuestions.length) {
+            renderQuizStep();
+            playClickSound();
+        } else {
+            finishQuiz();
+        }
+    });
+
+    async function finishQuiz() {
+        stopQuizTimer();
+        const total = currentQuizQuestions.length;
+        const percent = Math.round((quizScoreCorrect / total) * 100);
+        const timeElapsedSecs = Math.round((Date.now() - quizTimeStart) / 1000);
+        const mins = String(Math.floor(timeElapsedSecs / 60)).padStart(2, '0');
+        const secs = String(timeElapsedSecs % 60).padStart(2, '0');
+        const timeStr = `${mins}:${secs}`;
+        const points = quizScoreCorrect * 10;
+
+        if (quizQuestionScreen) quizQuestionScreen.style.display = 'none';
+        if (quizResultScreen) quizResultScreen.style.display = 'block';
+        if (quizNextBtn) quizNextBtn.style.display = 'none';
+        if (quizRetryBtn) quizRetryBtn.style.display = 'inline-flex';
+
+        if (quizScorePercent) quizScorePercent.textContent = `${percent}%`;
+        if (quizScoreLabel) quizScoreLabel.textContent = percent >= 80 ? 'Xuất sắc! 🌟' : (percent >= 50 ? 'Khá tốt! 👍' : 'Cố gắng lên! 📖');
+        if (quizResultTitle) quizResultTitle.textContent = `Chúc mừng ${currentStudent.name}!`;
+        if (quizResultDesc) quizResultDesc.textContent = `Em đã trả lời đúng ${quizScoreCorrect}/${total} câu hỏi trong bài thi trắc nghiệm.`;
+
+        if (statCorrect) statCorrect.textContent = `${quizScoreCorrect}/${total}`;
+        if (statTime) statTime.textContent = timeStr;
+        if (statPoints) statPoints.textContent = `${points} Điểm`;
+
+        showToast(`Hoàn thành bài kiểm tra: ${percent}% (${points} Điểm)!`, 'fa-trophy', 'success');
+
+        // Automatically mark node-5 as completed in Student checklist
+        if (!completedLessons.includes('node-5')) {
+            completedLessons.push('node-5');
+            localStorage.setItem('student_completed_lessons', JSON.stringify(completedLessons));
+            updateStudentUI();
+            renderChecklist();
+        }
+
+        // Sync result to Supabase Cloud student_quiz_results table
+        if (supabaseClient) {
+            try {
+                await supabaseClient.from('student_quiz_results').insert({
+                    student_name: currentStudent.name,
+                    classroom: currentStudent.classroom,
+                    subject_id: currentSubjectId,
+                    score: points,
+                    total_questions: total,
+                    correct_count: quizScoreCorrect,
+                    percentage: percent,
+                    passed: percent >= 50,
+                    completed_at: new Date().toISOString()
+                });
+                showToast('Đã lưu kết quả thi lên Supabase Cloud!', 'fa-cloud-arrow-up', 'success');
+            } catch (err) {
+                console.warn('Lỗi lưu điểm thi Supabase:', err);
+            }
+        }
+    }
+
+    quizRetryBtn?.addEventListener('click', () => {
+        startQuiz(currentSubjectId);
+    });
+
+    quizQuitBtn?.addEventListener('click', () => {
+        stopQuizTimer();
+        quizModal?.classList.remove('active');
+    });
+
+    quizModalCloseBtn?.addEventListener('click', () => {
+        stopQuizTimer();
+        quizModal?.classList.remove('active');
+    });
+
+    openQuizBtn?.addEventListener('click', () => {
+        startQuiz(currentSubjectId);
+    });
+
+    // Make Node-5 click/double click trigger the Quiz
+    const node5El = document.getElementById('node-5');
+    node5El?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startQuiz(currentSubjectId);
+    });
+
+    // Tab 3: Quiz Leaderboard Table
+    tabQuizLeaderboard?.addEventListener('click', () => {
+        tabCurrentStudent?.classList.remove('active');
+        tabClassList?.classList.remove('active');
+        tabQuizLeaderboard?.classList.add('active');
+
+        if (tabContentCurrent) tabContentCurrent.style.display = 'none';
+        if (tabContentClass) tabContentClass.style.display = 'none';
+        if (tabContentQuiz) tabContentQuiz.style.display = 'block';
+
+        fetchQuizLeaderboardFromSupabase();
+        playClickSound();
+    });
+
+    refreshQuizListBtn?.addEventListener('click', () => {
+        fetchQuizLeaderboardFromSupabase();
+        playClickSound();
+    });
+
+    async function fetchQuizLeaderboardFromSupabase() {
+        if (!quizTableBody) return;
+        quizTableBody.innerHTML = '<tr><td colspan="6" class="table-loading" style="text-align:center; padding:20px; color:#64748B;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải bảng điểm từ Supabase...</td></tr>';
+
+        if (!supabaseClient) {
+            quizTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#EF4444;">Chưa kết nối Supabase Cloud.</td></tr>';
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.from('student_quiz_results').select('*').order('score', { ascending: false }).limit(20);
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                quizTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748B;">Chưa có học sinh nào làm bài thi trắc nghiệm. Hãy bấm "Trắc nghiệm Quiz" để làm bài đầu tiên!</td></tr>';
+                return;
+            }
+
+            quizTableBody.innerHTML = '';
+            data.forEach((r, idx) => {
+                const subName = SUBJECT_TEMPLATES[r.subject_id]?.name || r.subject_id;
+                const timeStr = r.completed_at ? new Date(r.completed_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : 'Vừa xong';
+                const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700; font-size:14px;">${medal}</td>
+                    <td style="font-weight:600; color:#1E293B;">${r.student_name} (${r.classroom || '5A'})</td>
+                    <td><span class="badge-progress">${subName}</span></td>
+                    <td style="font-weight:700; color:#2563EB;">${r.score} Điểm</td>
+                    <td style="font-weight:600; color:${r.percentage >= 75 ? '#059669' : '#D97706'};">${r.percentage}% (${r.correct_count}/${r.total_questions})</td>
+                    <td style="font-size:12px; color:#64748B;">${timeStr}</td>
+                `;
+                quizTableBody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error('Lỗi tải bảng điểm Quiz:', err);
+            quizTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#EF4444;">Lỗi: ${err.message || 'Không thể truy vấn bảng student_quiz_results'}</td></tr>`;
+        }
+    }
 });
+
